@@ -2,8 +2,19 @@
 
 // ── ALL DESKS ─────────────────────────────────────────────
 const desks = [
+    // ── Product area (3×3 cluster, tile centres) ──
     { name: 'desk_product',   cx: 112, cy: 112, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_2', cx:  80, cy: 112, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_3', cx: 144, cy: 112, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_4', cx: 176, cy: 112, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_5', cx:  48, cy: 112, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_6', cx:  80, cy:  80, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_7', cx: 112, cy:  80, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_8', cx: 144, cy:  80, label: '📦 โต๊ะทีม Product' },
+    { name: 'desk_product_9', cx: 176, cy:  80, label: '📦 โต๊ะทีม Product' },
+    // ── PM corner ──
     { name: 'desk_pm_corner', cx: 208, cy: 144, label: '📦 มุม PM' },
+    { name: 'desk_pm_corner_2', cx: 208, cy: 176, label: '📦 มุม PM' },
     { name: 'desk_EL_1', cx: 336, cy: 144, label: '🏢 โต๊ะตะวันออก-ซ้าย 1' },
     { name: 'desk_EL_2', cx: 432, cy: 144, label: '🏢 โต๊ะตะวันออก-ซ้าย 2' },
     { name: 'desk_EL_3', cx: 336, cy: 208, label: '🏢 โต๊ะตะวันออก-ซ้าย 3' },
@@ -12,24 +23,58 @@ const desks = [
     { name: 'desk_ER_2', cx: 624, cy: 144, label: '🏢 โต๊ะตะวันออก-ขวา 2' },
     { name: 'desk_ER_3', cx: 528, cy: 208, label: '🏢 โต๊ะตะวันออก-ขวา 3' },
     { name: 'desk_ER_4', cx: 624, cy: 208, label: '🏢 โต๊ะตะวันออก-ขวา 4' },
-    { name: 'desk_qa',        cx: 816, cy: 304, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_center_1',  cx: 400, cy: 304, label: '💻 Dev Center — ซ้าย' },
-    { name: 'desk_center_2',  cx: 464, cy: 304, label: '💻 Dev Center — กลาง' },
-    { name: 'desk_center_3',  cx: 528, cy: 304, label: '💻 Dev Center — ขวา' },
+    // ── QA zone (2 columns × 4 rows) ──
+    { name: 'desk_qa',   cx: 816, cy: 304, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_2', cx: 912, cy: 304, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_3', cx: 816, cy: 272, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_4', cx: 912, cy: 272, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_5', cx: 816, cy: 336, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_6', cx: 912, cy: 336, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_7', cx: 816, cy: 368, label: '🧪 โซน QA / ทดสอบ' },
+    { name: 'desk_qa_8', cx: 912, cy: 368, label: '🧪 โซน QA / ทดสอบ' },
+    // ── Dev Center upper row (6 desks) ──
+    { name: 'desk_center_1', cx: 400, cy: 304, label: '💻 Dev Center — ซ้าย' },
+    { name: 'desk_center_2', cx: 464, cy: 304, label: '💻 Dev Center — กลาง' },
+    { name: 'desk_center_3', cx: 528, cy: 304, label: '💻 Dev Center — ขวา' },
+    { name: 'desk_center_6', cx: 432, cy: 304, label: '💻 Dev Center — กลาง-ซ้าย' },
+    { name: 'desk_center_7', cx: 496, cy: 304, label: '💻 Dev Center — กลาง' },
+    { name: 'desk_center_8', cx: 560, cy: 304, label: '💻 Dev Center — ขวาสุด' },
+    // ── Dev Center lower row (6 desks) ──
     { name: 'desk_center_4',  cx: 400, cy: 432, label: '💻 Dev Center — ล่าง-ซ้าย' },
     { name: 'desk_center_5',  cx: 528, cy: 432, label: '💻 Dev Center — ล่าง-ขวา' },
+    { name: 'desk_center_9',  cx: 432, cy: 432, label: '💻 Dev Center — ล่าง' },
+    { name: 'desk_center_10', cx: 464, cy: 432, label: '💻 Dev Center — ล่าง' },
+    { name: 'desk_center_11', cx: 496, cy: 432, label: '💻 Dev Center — ล่าง' },
+    { name: 'desk_center_12', cx: 560, cy: 432, label: '💻 Dev Center — ล่าง-ขวาสุด' },
     { name: 'desk_sw_1',      cx: 176, cy: 496, label: '💻 โต๊ะ SW 1' },
     { name: 'desk_sw_2',      cx: 176, cy: 560, label: '💻 โต๊ะ SW 2' },
     // desk_sw_corner ไม่มี chair tile ในแผนที่ — ถูก disable ไว้
     // { name: 'desk_sw_corner', cx:  48, cy: 432, label: '💻 มุม SW' },
-    { name: 'desk_south_1',   cx: 400, cy: 592, label: '💻 โต๊ะใต้ 1' },
-    { name: 'desk_south_2',   cx: 560, cy: 592, label: '💻 โต๊ะใต้ 2' },
-    { name: 'desk_se_1',      cx: 688, cy: 560, label: '🏢 โต๊ะ SE คู่ 1' },
-    { name: 'desk_se_2',      cx: 784, cy: 560, label: '🏢 โต๊ะ SE คู่ 2' },
-    { name: 'desk_se_3',      cx: 848, cy: 592, label: '🏢 โต๊ะ SE 3' },
-    // ── ชั้น B (ตำแหน่งจากการ verify กับ map tile จริง) ──
+    // ── South desks (2 columns × 2 rows) ──
+    { name: 'desk_south_1', cx: 400, cy: 592, label: '💻 โต๊ะใต้ 1' },
+    { name: 'desk_south_2', cx: 560, cy: 592, label: '💻 โต๊ะใต้ 2' },
+    { name: 'desk_south_3', cx: 400, cy: 624, label: '💻 โต๊ะใต้ 3' },
+    { name: 'desk_south_4', cx: 560, cy: 624, label: '💻 โต๊ะใต้ 4' },
+    // ── SE desks ──
+    { name: 'desk_se_1', cx: 688, cy: 560, label: '🏢 โต๊ะ SE คู่ 1' },
+    { name: 'desk_se_2', cx: 784, cy: 560, label: '🏢 โต๊ะ SE คู่ 2' },
+    { name: 'desk_se_3', cx: 848, cy: 592, label: '🏢 โต๊ะ SE 3' },
+    { name: 'desk_se_4', cx: 720, cy: 560, label: '🏢 โต๊ะ SE คู่ 4' },
+    { name: 'desk_se_5', cx: 816, cy: 560, label: '🏢 โต๊ะ SE คู่ 5' },
+    // ── ชั้น B (offset +640px จากชั้น A ยกเว้น PM corner และ QA ที่ใช้ +672) ──
+    // Product area B
     { name: 'desk_product_B',   cx: 112, cy: 752, label: '📦B ทีม Product' },
-    { name: 'desk_pm_corner_B', cx: 208, cy: 816, label: '📦B มุม PM' },
+    { name: 'desk_product_2_B', cx:  80, cy: 752, label: '📦B ทีม Product' },
+    { name: 'desk_product_3_B', cx: 144, cy: 752, label: '📦B ทีม Product' },
+    { name: 'desk_product_4_B', cx: 176, cy: 752, label: '📦B ทีม Product' },
+    { name: 'desk_product_5_B', cx:  48, cy: 752, label: '📦B ทีม Product' },
+    { name: 'desk_product_6_B', cx:  80, cy: 720, label: '📦B ทีม Product' },
+    { name: 'desk_product_7_B', cx: 112, cy: 720, label: '📦B ทีม Product' },
+    { name: 'desk_product_8_B', cx: 144, cy: 720, label: '📦B ทีม Product' },
+    { name: 'desk_product_9_B', cx: 176, cy: 720, label: '📦B ทีม Product' },
+    // PM corner B (+672)
+    { name: 'desk_pm_corner_B',   cx: 208, cy: 816, label: '📦B มุม PM' },
+    { name: 'desk_pm_corner_2_B', cx: 208, cy: 848, label: '📦B มุม PM' },
     { name: 'desk_EL_1_B', cx: 336, cy: 784, label: '🏢B ตะวันออก-ซ้าย 1' },
     { name: 'desk_EL_2_B', cx: 432, cy: 784, label: '🏢B ตะวันออก-ซ้าย 2' },
     { name: 'desk_EL_3_B', cx: 336, cy: 848, label: '🏢B ตะวันออก-ซ้าย 3' },
@@ -38,15 +83,46 @@ const desks = [
     { name: 'desk_ER_2_B', cx: 624, cy: 784, label: '🏢B ตะวันออก-ขวา 2' },
     { name: 'desk_ER_3_B', cx: 528, cy: 848, label: '🏢B ตะวันออก-ขวา 3' },
     { name: 'desk_ER_4_B', cx: 624, cy: 848, label: '🏢B ตะวันออก-ขวา 4' },
-    { name: 'desk_qa_B',        cx: 816, cy: 976, label: '🧪B QA / ทดสอบ' },
+    // QA zone B (+672)
+    { name: 'desk_qa_B',   cx: 816, cy:  976, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_2_B', cx: 912, cy:  976, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_3_B', cx: 816, cy:  944, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_4_B', cx: 912, cy:  944, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_5_B', cx: 816, cy: 1008, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_6_B', cx: 912, cy: 1008, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_7_B', cx: 816, cy: 1040, label: '🧪B QA / ทดสอบ' },
+    { name: 'desk_qa_8_B', cx: 912, cy: 1040, label: '🧪B QA / ทดสอบ' },
+    // Dev Center upper B (+640)
     { name: 'desk_center_1_B',  cx: 400, cy: 944, label: '💻B Dev Center ซ้าย' },
     { name: 'desk_center_2_B',  cx: 464, cy: 944, label: '💻B Dev Center กลาง' },
     { name: 'desk_center_3_B',  cx: 528, cy: 944, label: '💻B Dev Center ขวา' },
+    { name: 'desk_center_6_B',  cx: 432, cy: 944, label: '💻B Dev Center กลาง-ซ้าย' },
+    { name: 'desk_center_7_B',  cx: 496, cy: 944, label: '💻B Dev Center กลาง' },
+    { name: 'desk_center_8_B',  cx: 560, cy: 944, label: '💻B Dev Center ขวาสุด' },
+    // Dev Center lower B (+640)
     { name: 'desk_center_4_B',  cx: 400, cy: 1072, label: '💻B Dev Center ล่าง-ซ้าย' },
     { name: 'desk_center_5_B',  cx: 528, cy: 1072, label: '💻B Dev Center ล่าง-ขวา' },
+    { name: 'desk_center_9_B',  cx: 432, cy: 1072, label: '💻B Dev Center ล่าง' },
+    { name: 'desk_center_10_B', cx: 464, cy: 1072, label: '💻B Dev Center ล่าง' },
+    { name: 'desk_center_11_B', cx: 496, cy: 1072, label: '💻B Dev Center ล่าง' },
+    { name: 'desk_center_12_B', cx: 560, cy: 1072, label: '💻B Dev Center ล่าง-ขวาสุด' },
+    // SW B (+640)
+    { name: 'desk_sw_1_B', cx: 176, cy: 1136, label: '💻B โต๊ะ SW 1' },
+    { name: 'desk_sw_2_B', cx: 176, cy: 1200, label: '💻B โต๊ะ SW 2' },
+    // South desks B (+640)
+    { name: 'desk_south_1_B', cx: 400, cy: 1232, label: '💻B โต๊ะใต้ 1' },
+    { name: 'desk_south_2_B', cx: 560, cy: 1232, label: '💻B โต๊ะใต้ 2' },
+    { name: 'desk_south_3_B', cx: 400, cy: 1264, label: '💻B โต๊ะใต้ 3' },
+    { name: 'desk_south_4_B', cx: 560, cy: 1264, label: '💻B โต๊ะใต้ 4' },
+    // SE desks B (+640)
+    { name: 'desk_se_1_B', cx: 688, cy: 1200, label: '🏢B โต๊ะ SE คู่ 1' },
+    { name: 'desk_se_2_B', cx: 784, cy: 1200, label: '🏢B โต๊ะ SE คู่ 2' },
+    { name: 'desk_se_3_B', cx: 848, cy: 1232, label: '🏢B โต๊ะ SE 3' },
+    { name: 'desk_se_4_B', cx: 720, cy: 1200, label: '🏢B โต๊ะ SE คู่ 4' },
+    { name: 'desk_se_5_B', cx: 816, cy: 1200, label: '🏢B โต๊ะ SE คู่ 5' },
 ];
 
-const PROXIMITY_RADIUS = 16;
+const PROXIMITY_RADIUS = 40;
 
 // ── STATE ─────────────────────────────────────────────────
 let isSitting = false;
