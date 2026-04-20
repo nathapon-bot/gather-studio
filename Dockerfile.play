@@ -21,6 +21,8 @@ RUN NODE_ENV=development npm install --legacy-peer-deps
 
 # Make root .bin available so cross-env / vite are found during build
 ENV PATH="/app/node_modules/.bin:$PATH"
+# Vite build needs extra heap for large frontends (avoid OOM at "rendering chunks")
+ENV NODE_OPTIONS="--max-old-space-size=8192"
 
 RUN cd play && npm run build
 RUN cd play && npm run build-iframe-api
