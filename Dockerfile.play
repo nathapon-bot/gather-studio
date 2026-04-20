@@ -26,6 +26,10 @@ ENV NODE_OPTIONS="--max-old-space-size=8192"
 
 RUN cd play && npm run build
 RUN cd play && npm run build-iframe-api
+# build-iframe-api outputs to play/public/ but production server serves dist/public/
+# Copy it to the right place so /iframe_api.js resolves correctly
+RUN cp /app/play/public/iframe_api.js /app/play/dist/public/iframe_api.js && \
+    cp /app/play/public/iframe_api.js.map /app/play/dist/public/iframe_api.js.map
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
 FROM node:20-bullseye-slim
