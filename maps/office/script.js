@@ -2,123 +2,129 @@
 
 // ── ALL DESKS ─────────────────────────────────────────────
 const desks = [
-    // ── Product area (3×3 cluster, tile centres) ──
-    { name: 'desk_product',   cx: 112, cy: 112, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_2', cx:  80, cy: 112, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_3', cx: 144, cy: 112, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_4', cx: 176, cy: 112, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_5', cx:  48, cy: 112, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_6', cx:  80, cy:  80, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_7', cx: 112, cy:  80, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_8', cx: 144, cy:  80, label: '📦 โต๊ะทีม Product' },
-    { name: 'desk_product_9', cx: 176, cy:  80, label: '📦 โต๊ะทีม Product' },
-    // ── PM corner ──
-    { name: 'desk_pm_corner',   cx: 208, cy: 144, label: '📦 มุม PM' },
-    { name: 'desk_pm_corner_2', cx: 208, cy: 176, label: '📦 มุม PM' },
-    // ── East-Left ──
-    { name: 'desk_EL_1', cx: 336, cy: 144, label: '🏢 โต๊ะตะวันออก-ซ้าย 1' },
-    { name: 'desk_EL_2', cx: 432, cy: 144, label: '🏢 โต๊ะตะวันออก-ซ้าย 2' },
-    { name: 'desk_EL_3', cx: 336, cy: 208, label: '🏢 โต๊ะตะวันออก-ซ้าย 3' },
-    { name: 'desk_EL_4', cx: 432, cy: 208, label: '🏢 โต๊ะตะวันออก-ซ้าย 4' },
-    // ── East-Right ──
-    { name: 'desk_ER_1', cx: 528, cy: 144, label: '🏢 โต๊ะตะวันออก-ขวา 1' },
-    { name: 'desk_ER_2', cx: 624, cy: 144, label: '🏢 โต๊ะตะวันออก-ขวา 2' },
-    { name: 'desk_ER_3', cx: 528, cy: 208, label: '🏢 โต๊ะตะวันออก-ขวา 3' },
-    { name: 'desk_ER_4', cx: 624, cy: 208, label: '🏢 โต๊ะตะวันออก-ขวา 4' },
-    // ── QA zone (2 columns × 4 rows) ──
-    { name: 'desk_qa',   cx: 816, cy: 304, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_2', cx: 912, cy: 304, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_3', cx: 816, cy: 272, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_4', cx: 912, cy: 272, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_5', cx: 816, cy: 336, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_6', cx: 912, cy: 336, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_7', cx: 816, cy: 368, label: '🧪 โซน QA / ทดสอบ' },
-    { name: 'desk_qa_8', cx: 912, cy: 368, label: '🧪 โซน QA / ทดสอบ' },
-    // ── Dev Center upper row (6 desks) ──
-    { name: 'desk_center_1', cx: 400, cy: 304, label: '💻 Dev Center — ซ้าย' },
-    { name: 'desk_center_2', cx: 464, cy: 304, label: '💻 Dev Center — กลาง' },
-    { name: 'desk_center_3', cx: 528, cy: 304, label: '💻 Dev Center — ขวา' },
-    { name: 'desk_center_6', cx: 432, cy: 304, label: '💻 Dev Center — กลาง-ซ้าย' },
-    { name: 'desk_center_7', cx: 496, cy: 304, label: '💻 Dev Center — กลาง' },
-    { name: 'desk_center_8', cx: 560, cy: 304, label: '💻 Dev Center — ขวาสุด' },
-    // ── Dev Center lower row (6 desks) ──
-    { name: 'desk_center_4',  cx: 400, cy: 432, label: '💻 Dev Center — ล่าง-ซ้าย' },
-    { name: 'desk_center_5',  cx: 528, cy: 432, label: '💻 Dev Center — ล่าง-ขวา' },
-    { name: 'desk_center_9',  cx: 432, cy: 432, label: '💻 Dev Center — ล่าง' },
-    { name: 'desk_center_10', cx: 464, cy: 432, label: '💻 Dev Center — ล่าง' },
-    { name: 'desk_center_11', cx: 496, cy: 432, label: '💻 Dev Center — ล่าง' },
-    { name: 'desk_center_12', cx: 560, cy: 432, label: '💻 Dev Center — ล่าง-ขวาสุด' },
-    // ── SW ──
-    { name: 'desk_sw_1', cx: 176, cy: 496, label: '💻 โต๊ะ SW 1' },
-    { name: 'desk_sw_2', cx: 176, cy: 560, label: '💻 โต๊ะ SW 2' },
-    // ── South desks (2 columns × 2 rows) ──
-    { name: 'desk_south_1', cx: 400, cy: 592, label: '💻 โต๊ะใต้ 1' },
-    { name: 'desk_south_2', cx: 560, cy: 592, label: '💻 โต๊ะใต้ 2' },
-    { name: 'desk_south_3', cx: 400, cy: 624, label: '💻 โต๊ะใต้ 3' },
-    { name: 'desk_south_4', cx: 560, cy: 624, label: '💻 โต๊ะใต้ 4' },
-    // ── SE desks ──
-    { name: 'desk_se_1', cx: 688, cy: 560, label: '🏢 โต๊ะ SE คู่ 1' },
-    { name: 'desk_se_2', cx: 784, cy: 560, label: '🏢 โต๊ะ SE คู่ 2' },
-    { name: 'desk_se_3', cx: 848, cy: 592, label: '🏢 โต๊ะ SE 3' },
-    { name: 'desk_se_4', cx: 720, cy: 560, label: '🏢 โต๊ะ SE คู่ 4' },
-    { name: 'desk_se_5', cx: 816, cy: 560, label: '🏢 โต๊ะ SE คู่ 5' },
+    // Product area (3×3 cluster)
+    { name: 'desk_product',   cx: 112, cy: 112, label: '📦 Product' },
+    { name: 'desk_product_2', cx:  80, cy: 112, label: '📦 Product' },
+    { name: 'desk_product_3', cx: 144, cy: 112, label: '📦 Product' },
+    { name: 'desk_product_4', cx: 176, cy: 112, label: '📦 Product' },
+    { name: 'desk_product_5', cx:  48, cy: 112, label: '📦 Product' },
+    { name: 'desk_product_6', cx:  80, cy:  80, label: '📦 Product' },
+    { name: 'desk_product_7', cx: 112, cy:  80, label: '📦 Product' },
+    { name: 'desk_product_8', cx: 144, cy:  80, label: '📦 Product' },
+    { name: 'desk_product_9', cx: 176, cy:  80, label: '📦 Product' },
+    // PM corner
+    { name: 'desk_pm_corner',   cx: 208, cy: 144, label: '📦 PM' },
+    { name: 'desk_pm_corner_2', cx: 208, cy: 176, label: '📦 PM' },
+    // East-Left
+    { name: 'desk_EL_1', cx: 336, cy: 144, label: '🏢 East-L 1' },
+    { name: 'desk_EL_2', cx: 432, cy: 144, label: '🏢 East-L 2' },
+    { name: 'desk_EL_3', cx: 336, cy: 208, label: '🏢 East-L 3' },
+    { name: 'desk_EL_4', cx: 432, cy: 208, label: '🏢 East-L 4' },
+    // East-Right
+    { name: 'desk_ER_1', cx: 528, cy: 144, label: '🏢 East-R 1' },
+    { name: 'desk_ER_2', cx: 624, cy: 144, label: '🏢 East-R 2' },
+    { name: 'desk_ER_3', cx: 528, cy: 208, label: '🏢 East-R 3' },
+    { name: 'desk_ER_4', cx: 624, cy: 208, label: '🏢 East-R 4' },
+    // QA zone (2 columns × 4 rows)
+    { name: 'desk_qa',   cx: 816, cy: 304, label: '🧪 QA' },
+    { name: 'desk_qa_2', cx: 912, cy: 304, label: '🧪 QA' },
+    { name: 'desk_qa_3', cx: 816, cy: 272, label: '🧪 QA' },
+    { name: 'desk_qa_4', cx: 912, cy: 272, label: '🧪 QA' },
+    { name: 'desk_qa_5', cx: 816, cy: 336, label: '🧪 QA' },
+    { name: 'desk_qa_6', cx: 912, cy: 336, label: '🧪 QA' },
+    { name: 'desk_qa_7', cx: 816, cy: 368, label: '🧪 QA' },
+    { name: 'desk_qa_8', cx: 912, cy: 368, label: '🧪 QA' },
+    // Dev Center upper (6 desks)
+    { name: 'desk_center_1', cx: 400, cy: 304, label: '💻 Dev-U 1' },
+    { name: 'desk_center_2', cx: 464, cy: 304, label: '💻 Dev-U 2' },
+    { name: 'desk_center_3', cx: 528, cy: 304, label: '💻 Dev-U 3' },
+    { name: 'desk_center_6', cx: 432, cy: 304, label: '💻 Dev-U 4' },
+    { name: 'desk_center_7', cx: 496, cy: 304, label: '💻 Dev-U 5' },
+    { name: 'desk_center_8', cx: 560, cy: 304, label: '💻 Dev-U 6' },
+    // Dev Center lower (6 desks)
+    { name: 'desk_center_4',  cx: 400, cy: 432, label: '💻 Dev-L 1' },
+    { name: 'desk_center_5',  cx: 528, cy: 432, label: '💻 Dev-L 2' },
+    { name: 'desk_center_9',  cx: 432, cy: 432, label: '💻 Dev-L 3' },
+    { name: 'desk_center_10', cx: 464, cy: 432, label: '💻 Dev-L 4' },
+    { name: 'desk_center_11', cx: 496, cy: 432, label: '💻 Dev-L 5' },
+    { name: 'desk_center_12', cx: 560, cy: 432, label: '💻 Dev-L 6' },
+    // SW
+    { name: 'desk_sw_1', cx: 176, cy: 496, label: '💻 SW 1' },
+    { name: 'desk_sw_2', cx: 176, cy: 560, label: '💻 SW 2' },
+    // South (2 cols × 2 rows)
+    { name: 'desk_south_1', cx: 400, cy: 592, label: '💻 South 1' },
+    { name: 'desk_south_2', cx: 560, cy: 592, label: '💻 South 2' },
+    { name: 'desk_south_3', cx: 400, cy: 624, label: '💻 South 3' },
+    { name: 'desk_south_4', cx: 560, cy: 624, label: '💻 South 4' },
+    // SE
+    { name: 'desk_se_1', cx: 688, cy: 560, label: '🏢 SE 1' },
+    { name: 'desk_se_2', cx: 784, cy: 560, label: '🏢 SE 2' },
+    { name: 'desk_se_3', cx: 848, cy: 592, label: '🏢 SE 3' },
+    { name: 'desk_se_4', cx: 720, cy: 560, label: '🏢 SE 4' },
+    { name: 'desk_se_5', cx: 816, cy: 560, label: '🏢 SE 5' },
 
-    // ── ชั้น B (offset +640px ยกเว้น PM corner และ QA ที่ใช้ +672) ──
-    { name: 'desk_product_B',   cx: 112, cy: 752, label: '📦B ทีม Product' },
-    { name: 'desk_product_2_B', cx:  80, cy: 752, label: '📦B ทีม Product' },
-    { name: 'desk_product_3_B', cx: 144, cy: 752, label: '📦B ทีม Product' },
-    { name: 'desk_product_4_B', cx: 176, cy: 752, label: '📦B ทีม Product' },
-    { name: 'desk_product_5_B', cx:  48, cy: 752, label: '📦B ทีม Product' },
-    { name: 'desk_product_6_B', cx:  80, cy: 720, label: '📦B ทีม Product' },
-    { name: 'desk_product_7_B', cx: 112, cy: 720, label: '📦B ทีม Product' },
-    { name: 'desk_product_8_B', cx: 144, cy: 720, label: '📦B ทีม Product' },
-    { name: 'desk_product_9_B', cx: 176, cy: 720, label: '📦B ทีม Product' },
-    { name: 'desk_pm_corner_B',   cx: 208, cy: 816, label: '📦B มุม PM' },
-    { name: 'desk_pm_corner_2_B', cx: 208, cy: 848, label: '📦B มุม PM' },
-    { name: 'desk_EL_1_B', cx: 336, cy: 784, label: '🏢B ตะวันออก-ซ้าย 1' },
-    { name: 'desk_EL_2_B', cx: 432, cy: 784, label: '🏢B ตะวันออก-ซ้าย 2' },
-    { name: 'desk_EL_3_B', cx: 336, cy: 848, label: '🏢B ตะวันออก-ซ้าย 3' },
-    { name: 'desk_EL_4_B', cx: 432, cy: 848, label: '🏢B ตะวันออก-ซ้าย 4' },
-    { name: 'desk_ER_1_B', cx: 528, cy: 784, label: '🏢B ตะวันออก-ขวา 1' },
-    { name: 'desk_ER_2_B', cx: 624, cy: 784, label: '🏢B ตะวันออก-ขวา 2' },
-    { name: 'desk_ER_3_B', cx: 528, cy: 848, label: '🏢B ตะวันออก-ขวา 3' },
-    { name: 'desk_ER_4_B', cx: 624, cy: 848, label: '🏢B ตะวันออก-ขวา 4' },
-    { name: 'desk_qa_B',   cx: 816, cy:  976, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_2_B', cx: 912, cy:  976, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_3_B', cx: 816, cy:  944, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_4_B', cx: 912, cy:  944, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_5_B', cx: 816, cy: 1008, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_6_B', cx: 912, cy: 1008, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_7_B', cx: 816, cy: 1040, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_qa_8_B', cx: 912, cy: 1040, label: '🧪B QA / ทดสอบ' },
-    { name: 'desk_center_1_B',  cx: 400, cy:  944, label: '💻B Dev Center ซ้าย' },
-    { name: 'desk_center_2_B',  cx: 464, cy:  944, label: '💻B Dev Center กลาง' },
-    { name: 'desk_center_3_B',  cx: 528, cy:  944, label: '💻B Dev Center ขวา' },
-    { name: 'desk_center_6_B',  cx: 432, cy:  944, label: '💻B Dev Center กลาง-ซ้าย' },
-    { name: 'desk_center_7_B',  cx: 496, cy:  944, label: '💻B Dev Center กลาง' },
-    { name: 'desk_center_8_B',  cx: 560, cy:  944, label: '💻B Dev Center ขวาสุด' },
-    { name: 'desk_center_4_B',  cx: 400, cy: 1072, label: '💻B Dev Center ล่าง-ซ้าย' },
-    { name: 'desk_center_5_B',  cx: 528, cy: 1072, label: '💻B Dev Center ล่าง-ขวา' },
-    { name: 'desk_center_9_B',  cx: 432, cy: 1072, label: '💻B Dev Center ล่าง' },
-    { name: 'desk_center_10_B', cx: 464, cy: 1072, label: '💻B Dev Center ล่าง' },
-    { name: 'desk_center_11_B', cx: 496, cy: 1072, label: '💻B Dev Center ล่าง' },
-    { name: 'desk_center_12_B', cx: 560, cy: 1072, label: '💻B Dev Center ล่าง-ขวาสุด' },
-    { name: 'desk_sw_1_B', cx: 176, cy: 1136, label: '💻B โต๊ะ SW 1' },
-    { name: 'desk_sw_2_B', cx: 176, cy: 1200, label: '💻B โต๊ะ SW 2' },
-    { name: 'desk_south_1_B', cx: 400, cy: 1232, label: '💻B โต๊ะใต้ 1' },
-    { name: 'desk_south_2_B', cx: 560, cy: 1232, label: '💻B โต๊ะใต้ 2' },
-    { name: 'desk_south_3_B', cx: 400, cy: 1264, label: '💻B โต๊ะใต้ 3' },
-    { name: 'desk_south_4_B', cx: 560, cy: 1264, label: '💻B โต๊ะใต้ 4' },
-    { name: 'desk_se_1_B', cx: 688, cy: 1200, label: '🏢B โต๊ะ SE คู่ 1' },
-    { name: 'desk_se_2_B', cx: 784, cy: 1200, label: '🏢B โต๊ะ SE คู่ 2' },
-    { name: 'desk_se_3_B', cx: 848, cy: 1232, label: '🏢B โต๊ะ SE 3' },
-    { name: 'desk_se_4_B', cx: 720, cy: 1200, label: '🏢B โต๊ะ SE คู่ 4' },
-    { name: 'desk_se_5_B', cx: 816, cy: 1200, label: '🏢B โต๊ะ SE คู่ 5' },
+    // ── Floor B (+640 / +672 for PM & QA) ──────────────────
+    { name: 'desk_product_B',   cx: 112, cy: 752, label: '📦B Product' },
+    { name: 'desk_product_2_B', cx:  80, cy: 752, label: '📦B Product' },
+    { name: 'desk_product_3_B', cx: 144, cy: 752, label: '📦B Product' },
+    { name: 'desk_product_4_B', cx: 176, cy: 752, label: '📦B Product' },
+    { name: 'desk_product_5_B', cx:  48, cy: 752, label: '📦B Product' },
+    { name: 'desk_product_6_B', cx:  80, cy: 720, label: '📦B Product' },
+    { name: 'desk_product_7_B', cx: 112, cy: 720, label: '📦B Product' },
+    { name: 'desk_product_8_B', cx: 144, cy: 720, label: '📦B Product' },
+    { name: 'desk_product_9_B', cx: 176, cy: 720, label: '📦B Product' },
+    { name: 'desk_pm_corner_B',   cx: 208, cy: 816, label: '📦B PM' },
+    { name: 'desk_pm_corner_2_B', cx: 208, cy: 848, label: '📦B PM' },
+    { name: 'desk_EL_1_B', cx: 336, cy: 784, label: '🏢B East-L 1' },
+    { name: 'desk_EL_2_B', cx: 432, cy: 784, label: '🏢B East-L 2' },
+    { name: 'desk_EL_3_B', cx: 336, cy: 848, label: '🏢B East-L 3' },
+    { name: 'desk_EL_4_B', cx: 432, cy: 848, label: '🏢B East-L 4' },
+    { name: 'desk_ER_1_B', cx: 528, cy: 784, label: '🏢B East-R 1' },
+    { name: 'desk_ER_2_B', cx: 624, cy: 784, label: '🏢B East-R 2' },
+    { name: 'desk_ER_3_B', cx: 528, cy: 848, label: '🏢B East-R 3' },
+    { name: 'desk_ER_4_B', cx: 624, cy: 848, label: '🏢B East-R 4' },
+    { name: 'desk_qa_B',   cx: 816, cy:  976, label: '🧪B QA' },
+    { name: 'desk_qa_2_B', cx: 912, cy:  976, label: '🧪B QA' },
+    { name: 'desk_qa_3_B', cx: 816, cy:  944, label: '🧪B QA' },
+    { name: 'desk_qa_4_B', cx: 912, cy:  944, label: '🧪B QA' },
+    { name: 'desk_qa_5_B', cx: 816, cy: 1008, label: '🧪B QA' },
+    { name: 'desk_qa_6_B', cx: 912, cy: 1008, label: '🧪B QA' },
+    { name: 'desk_qa_7_B', cx: 816, cy: 1040, label: '🧪B QA' },
+    { name: 'desk_qa_8_B', cx: 912, cy: 1040, label: '🧪B QA' },
+    { name: 'desk_center_1_B',  cx: 400, cy:  944, label: '💻B Dev-U 1' },
+    { name: 'desk_center_2_B',  cx: 464, cy:  944, label: '💻B Dev-U 2' },
+    { name: 'desk_center_3_B',  cx: 528, cy:  944, label: '💻B Dev-U 3' },
+    { name: 'desk_center_6_B',  cx: 432, cy:  944, label: '💻B Dev-U 4' },
+    { name: 'desk_center_7_B',  cx: 496, cy:  944, label: '💻B Dev-U 5' },
+    { name: 'desk_center_8_B',  cx: 560, cy:  944, label: '💻B Dev-U 6' },
+    { name: 'desk_center_4_B',  cx: 400, cy: 1072, label: '💻B Dev-L 1' },
+    { name: 'desk_center_5_B',  cx: 528, cy: 1072, label: '💻B Dev-L 2' },
+    { name: 'desk_center_9_B',  cx: 432, cy: 1072, label: '💻B Dev-L 3' },
+    { name: 'desk_center_10_B', cx: 464, cy: 1072, label: '💻B Dev-L 4' },
+    { name: 'desk_center_11_B', cx: 496, cy: 1072, label: '💻B Dev-L 5' },
+    { name: 'desk_center_12_B', cx: 560, cy: 1072, label: '💻B Dev-L 6' },
+    { name: 'desk_sw_1_B', cx: 176, cy: 1136, label: '💻B SW 1' },
+    { name: 'desk_sw_2_B', cx: 176, cy: 1200, label: '💻B SW 2' },
+    { name: 'desk_south_1_B', cx: 400, cy: 1232, label: '💻B South 1' },
+    { name: 'desk_south_2_B', cx: 560, cy: 1232, label: '💻B South 2' },
+    { name: 'desk_south_3_B', cx: 400, cy: 1264, label: '💻B South 3' },
+    { name: 'desk_south_4_B', cx: 560, cy: 1264, label: '💻B South 4' },
+    { name: 'desk_se_1_B', cx: 688, cy: 1200, label: '🏢B SE 1' },
+    { name: 'desk_se_2_B', cx: 784, cy: 1200, label: '🏢B SE 2' },
+    { name: 'desk_se_3_B', cx: 848, cy: 1232, label: '🏢B SE 3' },
+    { name: 'desk_se_4_B', cx: 720, cy: 1200, label: '🏢B SE 4' },
+    { name: 'desk_se_5_B', cx: 816, cy: 1200, label: '🏢B SE 5' },
 ];
 
-const PROXIMITY_RADIUS = 40;
+// ── CONSTANTS ─────────────────────────────────────────────
+const PROXIMITY_RADIUS  = 40;
+const TILE_SIZE         = 32;
+const HIGHLIGHT_LAYER   = 'chair_highlight';
+const TILE_VACANT       = 2956;   // green  border — vacant (no one booked)
+const TILE_MINE         = 2957;   // blue   border — my booked desk
+const TILE_OTHER        = 2958;   // red    border — someone else's desk
 
-// ── DESK OWNER REGISTRY (other players) ───────────────────
+// ── DESK OWNER REGISTRY ───────────────────────────────────
 // deskName → { playerName, playerId }
 const deskOwners = new Map();
 
@@ -131,8 +137,8 @@ let myDeskPosition = null;
 let myPlayerName   = '';
 let sitActionMsg   = undefined;
 let standActionMsg = undefined;
-let unbookActionMsg= undefined;
 let goHomeActionMsg= undefined;
+let bookingMenuCmd = undefined;   // dynamic "Book / Unbook" menu entry
 
 // ── HELPERS ───────────────────────────────────────────────
 function findNearestDesk(px, py) {
@@ -143,29 +149,77 @@ function findNearestDesk(px, py) {
     }
     return best;
 }
-
 function getDeskData(name)  { return desks.find(d => d.name === name); }
 function getDeskLabel(name) { const d = getDeskData(name); return d ? d.label : name; }
-
-/** Returns the display name of who booked this desk (excluding self), or null if vacant. */
 function getDeskOwnerName(deskName) {
     if (deskOwners.has(deskName)) return deskOwners.get(deskName).playerName;
     return null;
 }
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function clearActions() {
-    if (sitActionMsg)    { sitActionMsg.remove();    sitActionMsg    = undefined; }
-    if (unbookActionMsg) { unbookActionMsg.remove(); unbookActionMsg = undefined; }
+// ── CHAIR TILE HIGHLIGHT ──────────────────────────────────
+function highlightTileFor(deskName) {
+    if (myBookedDesk === deskName)   return TILE_MINE;
+    if (deskOwners.has(deskName))    return TILE_OTHER;
+    return TILE_VACANT;
+}
+function showHighlight(deskName) {
+    try {
+        const d = getDeskData(deskName);
+        if (!d) return;
+        WA.room.setTiles([{
+            x:     Math.floor(d.cx / TILE_SIZE),
+            y:     Math.floor(d.cy / TILE_SIZE),
+            tile:  highlightTileFor(deskName),
+            layer: HIGHLIGHT_LAYER
+        }]);
+    } catch(e) {}
+}
+function clearHighlight(deskName) {
+    try {
+        const d = getDeskData(deskName);
+        if (!d) return;
+        WA.room.setTiles([{
+            x:     Math.floor(d.cx / TILE_SIZE),
+            y:     Math.floor(d.cy / TILE_SIZE),
+            tile:  null,
+            layer: HIGHLIGHT_LAYER
+        }]);
+    } catch(e) {}
 }
 
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+// ── BOOKING MENU COMMAND ──────────────────────────────────
+// Registers a context-sensitive "Book / Unbook" entry while near a desk.
+// Removed when leaving the desk zone.
+function updateBookingMenu(deskName) {
+    if (bookingMenuCmd) { bookingMenuCmd.remove(); bookingMenuCmd = undefined; }
+    if (!deskName || isSitting) return;
+
+    if (myBookedDesk === deskName) {
+        // Already mine → offer unbook
+        bookingMenuCmd = WA.ui.registerMenuCommand(
+            `🔓 ยกเลิกการจอง: ${getDeskLabel(deskName)}`,
+            { callback: () => unbookDesk() }
+        );
+    } else if (!deskOwners.has(deskName)) {
+        // Vacant → offer booking
+        bookingMenuCmd = WA.ui.registerMenuCommand(
+            `📌 จองโต๊ะ: ${getDeskLabel(deskName)}`,
+            { callback: () => bookDesk(deskName) }
+        );
+    }
+    // (if owned by someone else — no booking option)
+}
+function clearBookingMenu() {
+    if (bookingMenuCmd) { bookingMenuCmd.remove(); bookingMenuCmd = undefined; }
+}
 
 // ── GO HOME BUTTON ────────────────────────────────────────
 function showGoHomeButton() {
     if (goHomeActionMsg) { goHomeActionMsg.remove(); goHomeActionMsg = undefined; }
     if (!myBookedDesk || !myDeskPosition) return;
     goHomeActionMsg = WA.ui.displayActionMessage({
-        message: `🏠 กด SPACE — ไปที่ ${getDeskLabel(myBookedDesk)}`,
+        message: `🏠 SPACE — ไปที่ ${getDeskLabel(myBookedDesk)}`,
         type: 'message',
         callback: () => goToMyDesk()
     });
@@ -173,12 +227,10 @@ function showGoHomeButton() {
 function hideGoHomeButton() {
     if (goHomeActionMsg) { goHomeActionMsg.remove(); goHomeActionMsg = undefined; }
 }
-
 async function goToMyDesk() {
     try {
-        if (!myDeskPosition) { WA.chat.sendChatMessage('❌ ยังไม่ได้จองโต๊ะ', 'ระบบ'); return; }
+        if (!myDeskPosition) return;
         hideGoHomeButton();
-        WA.chat.sendChatMessage(`🏠 กำลังไปที่ ${getDeskLabel(myBookedDesk)}…`, 'ระบบ');
         await WA.player.moveTo(myDeskPosition.x, myDeskPosition.y, 10);
     } catch(e) {}
 }
@@ -189,51 +241,28 @@ async function sitDown(desk) {
         if (isSitting) return;
         const deskData = getDeskData(desk);
 
-        // ── Step 1: Teleport instantly to the exact chair tile centre ──────────
-        // Using teleport (not moveTo) so there is NO walking animation to interfere
-        // with the subsequent sit animation.
+        // Snap to exact chair tile centre (teleport = instant, no walk)
         if (deskData) {
             try { await WA.player.teleport(deskData.cx, deskData.cy); } catch(e) {
-                // Fallback: fast moveTo if teleport unavailable
                 try { await WA.player.moveTo(deskData.cx, deskData.cy, 1000); } catch(e2) {}
             }
-            await delay(50); // one Phaser frame for the position to register
+            await delay(50);
         }
 
         isSitting   = true;
         currentDesk = desk;
-        clearActions();
+        if (sitActionMsg) { sitActionMsg.remove(); sitActionMsg = undefined; }
         hideGoHomeButton();
+        clearBookingMenu();
 
-        // ── Step 2: Play the REAL sit animation ───────────────────────────────
-        // setSitting(true) inside Phaser:
-        //   • shifts all character sprites down 4 px
-        //   • plays the "{woka}-down-sit" sprite animation (dedicated sit frames)
-        //   • calls stop() to zero velocity
-        // This MUST happen BEFORE disablePlayerControls so Phaser can render the
-        // first animation frame while the engine is still fully active.
+        // Real sit animation: sprite −4 px + "{woka}-down-sit" anim
         await WA.player.setSitting(true);
-
-        // ── Step 3: Lock controls and mark as busy ────────────────────────────
         WA.controls.disablePlayerControls();
         WA.player.setStatus('BUSY');
-        // Subtle orange outline = visual "I'm sitting/busy" cue for other players
-        await WA.player.setOutlineColor(255, 130, 0);
-
-        // ── Step 4: Auto-book on first sit ────────────────────────────────────
-        if (myBookedDesk !== desk) {
-            if (myBookedDesk) WA.chat.sendChatMessage(`🔄 เปลี่ยนจาก ${getDeskLabel(myBookedDesk)}`, 'ระบบ');
-            myBookedDesk   = desk;
-            myDeskPosition = deskData ? { x: deskData.cx, y: deskData.cy } : await WA.player.getPosition();
-            await WA.player.state.saveVariable('bookedDesk',    desk,           { public: true,  persist: true });
-            await WA.player.state.saveVariable('bookedDeskPos', myDeskPosition, { public: false, persist: true });
-            await WA.player.state.saveVariable('playerName',    myPlayerName,   { public: true,  persist: true });
-        }
-
-        WA.chat.sendChatMessage(`💺 นั่งที่ ${getDeskLabel(desk)} — โต๊ะของคุณแล้ว!`, 'ระบบ');
+        await WA.player.setOutlineColor(255, 130, 0);   // orange = busy
 
         standActionMsg = WA.ui.displayActionMessage({
-            message: '🚶 กด SPACE เพื่อลุกขึ้น',
+            message: '🚶 SPACE — ลุกขึ้น',
             type: 'message',
             callback: () => standUp()
         });
@@ -243,33 +272,48 @@ async function sitDown(desk) {
 async function standUp() {
     try {
         if (!isSitting) return;
+        if (standActionMsg) { standActionMsg.remove(); standActionMsg = undefined; }
 
-        // ── Step 1: Play the REAL stand animation FIRST ───────────────────────
-        // setSitting(false) inside Phaser:
-        //   • shifts sprites back up 4 px (undo the sit offset)
-        //   • resumes the idle animation for the player's last facing direction
-        // Must happen BEFORE restoring controls so the animation plays cleanly.
+        // Real stand animation: sprite +4 px + resume idle
         await WA.player.setSitting(false);
-
-        // ── Step 2: Restore controls and clear status ─────────────────────────
         WA.controls.restorePlayerControls();
         WA.player.setStatus('ONLINE');
         await WA.player.removeOutlineColor();
 
-        isSitting   = false;
-        currentDesk = undefined;
-        nearestDesk = null;
-        if (standActionMsg) { standActionMsg.remove(); standActionMsg = undefined; }
+        const prevDesk  = currentDesk;
+        isSitting       = false;
+        currentDesk     = undefined;
+        // Don't reset nearestDesk — let the polling detect we're still near the chair
+        nearestDesk     = null;
 
-        WA.chat.sendChatMessage(`🚶 ลุกขึ้นแล้ว — โต๊ะ ${getDeskLabel(myBookedDesk)} ยังจองอยู่`, 'ระบบ');
-        showGoHomeButton();
+        if (myBookedDesk && myDeskPosition) showGoHomeButton();
+
+        // Re-register booking menu if we're still near the desk
+        if (prevDesk) updateBookingMenu(prevDesk);
     } catch(e) {}
 }
 
-// ── UNBOOK ────────────────────────────────────────────────
+// ── BOOKING ───────────────────────────────────────────────
+async function bookDesk(deskName) {
+    try {
+        const d = getDeskData(deskName);
+        myBookedDesk   = deskName;
+        myDeskPosition = d ? { x: d.cx, y: d.cy } : await WA.player.getPosition();
+        await WA.player.state.saveVariable('bookedDesk',    deskName,       { public: true,  persist: true });
+        await WA.player.state.saveVariable('bookedDeskPos', myDeskPosition, { public: false, persist: true });
+        await WA.player.state.saveVariable('playerName',    myPlayerName,   { public: true,  persist: true });
+        WA.chat.sendChatMessage(`📌 จองแล้ว: ${getDeskLabel(deskName)}`, 'ระบบ');
+        // Refresh highlight to blue (mine) and update booking menu
+        if (nearestDesk === deskName) {
+            showHighlight(deskName);
+            updateBookingMenu(deskName);
+        }
+    } catch(e) {}
+}
+
 async function unbookDesk() {
     try {
-        if (!myBookedDesk) { WA.chat.sendChatMessage('❌ ยังไม่ได้จองโต๊ะ', 'ระบบ'); return; }
+        if (!myBookedDesk) return;
         const old = myBookedDesk;
         myBookedDesk   = undefined;
         myDeskPosition = null;
@@ -278,120 +322,77 @@ async function unbookDesk() {
         await WA.player.state.saveVariable('playerName',    null, { public: true,  persist: true });
         hideGoHomeButton();
         WA.chat.sendChatMessage(`🔓 ยกเลิกการจอง: ${getDeskLabel(old)}`, 'ระบบ');
-        if (nearestDesk) showDeskActions(nearestDesk);
+        // Refresh highlight and menu
+        if (nearestDesk === old) {
+            showHighlight(old);
+            updateBookingMenu(old);
+        }
     } catch(e) {}
 }
 
-// ── DESK ACTION DISPLAY ───────────────────────────────────
-function showDeskActions(desk) {
-    clearActions();
-    if (isSitting) return;
-
-    const label     = getDeskLabel(desk);
-    const isMyDesk  = (myBookedDesk === desk);
-    const ownerName = getDeskOwnerName(desk); // other player's name (null if vacant)
-
-    if (isMyDesk) {
-        // Own booked desk ─ sit + unbook options
-        sitActionMsg = WA.ui.displayActionMessage({
-            message: `💺 กด SPACE — นั่งที่โต๊ะของคุณ`,
-            type: 'message',
-            callback: () => sitDown(desk)
-        });
-        unbookActionMsg = WA.ui.displayActionMessage({
-            message: `🔓 กด SPACE — ยกเลิกการจอง`,
-            type: 'warning',
-            callback: () => unbookDesk()
-        });
-    } else if (ownerName) {
-        // Booked by someone else ─ show nameplate, no sit
-        sitActionMsg = WA.ui.displayActionMessage({
-            message: `🔴 โต๊ะของ ${ownerName} — ถูกจองแล้ว`,
-            type: 'warning',
-            callback: () => WA.chat.sendChatMessage(`⚠️ ${label} จองโดย ${ownerName} แล้ว`, 'ระบบ')
-        });
-    } else {
-        // Vacant desk
-        sitActionMsg = WA.ui.displayActionMessage({
-            message: `🟢 กด SPACE — นั่ง & จอง ${label}`,
-            type: 'message',
-            callback: () => sitDown(desk)
-        });
-    }
+// ── DESK DIRECTORY ────────────────────────────────────────
+function showDeskDirectory() {
+    const lines = [];
+    if (myBookedDesk) lines.push(`✅ ${getDeskLabel(myBookedDesk)} — คุณ`);
+    for (const [desk, { playerName }] of deskOwners.entries())
+        lines.push(`🔴 ${getDeskLabel(desk)} — ${playerName}`);
+    WA.chat.sendChatMessage(
+        lines.length ? '📋 สถานะโต๊ะ:\n' + lines.join('\n') : '📋 ยังไม่มีใครจองโต๊ะ',
+        'ระบบ'
+    );
 }
 
 // ── APPROACH / LEAVE ──────────────────────────────────────
 function onApproachDesk(desk) {
     if (isSitting) return;
-    const label     = getDeskLabel(desk);
-    const isMyDesk  = (myBookedDesk === desk);
-    const ownerName = getDeskOwnerName(desk);
-
-    if (isMyDesk) {
-        WA.chat.sendChatMessage(`📍 ${label}\n✅ โต๊ะของคุณ`, 'ระบบ');
-    } else if (ownerName) {
-        // FIX 2 ── Show nameplate of desk owner
-        WA.chat.sendChatMessage(`📍 ${label}\n🔴 จองโดย: ${ownerName}`, 'ระบบ');
-    } else {
-        WA.chat.sendChatMessage(`📍 ${label} 🟢 ว่าง`, 'ระบบ');
-    }
-
+    showHighlight(desk);
+    updateBookingMenu(desk);
     hideGoHomeButton();
-    showDeskActions(desk);
+
+    const ownerName = getDeskOwnerName(desk);
+    if (ownerName) {
+        // Someone else's booked desk — show owner name; still allow sitting
+        sitActionMsg = WA.ui.displayActionMessage({
+            message: `🔴 ของ ${ownerName} — SPACE นั่ง`,
+            type: 'warning',
+            callback: () => sitDown(desk)
+        });
+    } else {
+        // Vacant or my desk — minimal hint
+        sitActionMsg = WA.ui.displayActionMessage({
+            message: '💺 SPACE — นั่ง',
+            type: 'message',
+            callback: () => sitDown(desk)
+        });
+    }
 }
 
-function onLeaveDesk() {
-    clearActions();
+function onLeaveDesk(desk) {
+    clearHighlight(desk);
+    clearBookingMenu();
+    if (sitActionMsg) { sitActionMsg.remove(); sitActionMsg = undefined; }
     if (myBookedDesk && myDeskPosition) showGoHomeButton();
 }
 
-// ── PLAYER TRACKING (for nameplates) ─────────────────────
-/**
- * Start watching a remote player's bookedDesk variable.
- * Called both for existing players and new arrivals.
- */
+// ── PLAYER TRACKING ───────────────────────────────────────
 function trackPlayer(player) {
     try {
-        // Seed current state
         const booked = player.state['bookedDesk'];
         if (booked) deskOwners.set(booked, { playerName: player.name, playerId: player.id });
-
-        // Watch future changes
         player.state.onVariableChange('bookedDesk').subscribe(value => {
-            // Remove any prior entry for this player
-            for (const [d, o] of deskOwners.entries()) {
+            for (const [d, o] of deskOwners.entries())
                 if (o.playerId === player.id) { deskOwners.delete(d); break; }
-            }
             if (value) deskOwners.set(value, { playerName: player.name, playerId: player.id });
-
-            // Refresh displayed action if the changed desk is the one we're standing at
-            if (nearestDesk && !isSitting) showDeskActions(nearestDesk);
+            // Refresh highlight if this desk is our current nearest
+            if (nearestDesk && !isSitting) showHighlight(nearestDesk);
+            if (nearestDesk && !isSitting) updateBookingMenu(nearestDesk);
         });
     } catch(e) {}
 }
 
-// ── DESK DIRECTORY (menu command) ─────────────────────────
-function showDeskDirectory() {
-    const lines = [];
-    // My desk first
-    if (myBookedDesk) lines.push(`✅ ${getDeskLabel(myBookedDesk)} — คุณ`);
-    // Others
-    for (const [deskName, { playerName }] of deskOwners.entries()) {
-        lines.push(`🔴 ${getDeskLabel(deskName)} — ${playerName}`);
-    }
-    if (lines.length === 0) {
-        WA.chat.sendChatMessage('📋 ยังไม่มีใครจองโต๊ะ', 'ระบบ');
-    } else {
-        WA.chat.sendChatMessage('📋 สถานะโต๊ะ:\n' + lines.join('\n'), 'ระบบ');
-    }
-}
-
 // ── INIT ──────────────────────────────────────────────────
 WA.onInit().then(async () => {
-    // Cache local player name for nameplate saving
     try { myPlayerName = WA.player.name || ''; } catch(e) {}
-
-    WA.chat.sendChatMessage('🏢 เดินไปที่โต๊ะ — กด SPACE เพื่อนั่งและจองเป็นของคุณ!', 'ระบบ');
 
     // Restore persisted booking
     try {
@@ -405,31 +406,29 @@ WA.onInit().then(async () => {
         }
     } catch(e) {}
 
-    // Register menu commands
+    // Persistent menu commands
     WA.ui.registerMenuCommand('🏠 ไปที่โต๊ะของฉัน',    { callback: () => goToMyDesk() });
-    WA.ui.registerMenuCommand('🔓 ยกเลิกการจองโต๊ะ',   { callback: () => unbookDesk() });
     WA.ui.registerMenuCommand('📋 ดูสถานะโต๊ะทั้งหมด', { callback: () => showDeskDirectory() });
 
-    // FIX 2 ── Start tracking other players for nameplates
+    // Track other players for desk nameplates
     try {
-        for (const player of WA.players.list()) trackPlayer(player);
-        WA.players.onPlayerEnters.subscribe(player => trackPlayer(player));
-        WA.players.onPlayerLeaves.subscribe(player => {
-            for (const [d, o] of deskOwners.entries()) {
-                if (o.playerId === player.id) { deskOwners.delete(d); break; }
-            }
-            if (nearestDesk && !isSitting) showDeskActions(nearestDesk);
+        for (const p of WA.players.list()) trackPlayer(p);
+        WA.players.onPlayerEnters.subscribe(p => trackPlayer(p));
+        WA.players.onPlayerLeaves.subscribe(p => {
+            for (const [d, o] of deskOwners.entries())
+                if (o.playerId === p.id) { deskOwners.delete(d); break; }
+            if (nearestDesk && !isSitting) showHighlight(nearestDesk);
         });
     } catch(e) {}
 
-    // Proximity polling loop
+    // Proximity polling — drives the chair highlight + approach/leave events
     setInterval(async () => {
         if (isSitting) return;
         try {
             const pos  = await WA.player.getPosition();
             const desk = findNearestDesk(pos.x, pos.y);
             if (desk !== nearestDesk) {
-                if (nearestDesk) onLeaveDesk();
+                if (nearestDesk) onLeaveDesk(nearestDesk);
                 if (desk)        onApproachDesk(desk);
                 nearestDesk = desk;
             }
