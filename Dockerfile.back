@@ -9,7 +9,7 @@ COPY messages ./messages
 COPY back ./back
 
 WORKDIR /app/back
-RUN npm ci --legacy-peer-deps 2>&1 | tail -5
+RUN NODE_ENV=development npm ci --legacy-peer-deps
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
 FROM node:22-bullseye-slim

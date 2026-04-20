@@ -10,7 +10,7 @@ COPY play ./play
 
 # Install deps and build
 WORKDIR /app/play
-RUN npm ci --legacy-peer-deps 2>&1 | tail -5
+RUN NODE_ENV=development npm ci --legacy-peer-deps
 RUN npm run build
 RUN npm run build-iframe-api
 
