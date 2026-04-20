@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WorkVenture - Choose Your World</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 40px 20px;
+    }
+    h1 { font-size: 2.5rem; margin-bottom: 8px; letter-spacing: 2px; }
+    p.subtitle { color: #aaa; margin-bottom: 40px; font-size: 1.1rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      width: 100%;
+    }
+    .card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      background: rgba(255,255,255,0.14);
+    }
+    .card .icon { font-size: 3rem; margin-bottom: 16px; }
+    .card h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    .card p { font-size: 0.9rem; color: #bbb; line-height: 1.5; }
+    .badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .badge.blue { background: #0066ff33; color: #66aaff; border: 1px solid #0066ff55; }
+    .badge.green { background: #00cc6633; color: #66ffaa; border: 1px solid #00cc6655; }
+    .badge.orange { background: #ff660033; color: #ffaa66; border: 1px solid #ff660055; }
+    .badge.teal { background: #00cccc33; color: #66ffff; border: 1px solid #00cccc55; }
+  </style>
+</head>
+<body>
+  <h1>🌍 WorkVenture</h1>
+  <p class="subtitle">Choose your virtual world and start collaborating</p>
+  <div class="grid">
+    <a class="card" href="http://play.workadventure.localhost/_/global/maps.workadventure.localhost/office/map.json">
+      <div class="icon">🏢</div>
+      <h2>Classic Office</h2>
+      <p>A clean and professional office environment with meeting rooms and workstations.</p>
+      <span class="badge blue">Professional</span>
+    </a>
+    <a class="card" href="http://play.workadventure.localhost/_/global/maps.workadventure.localhost/playful-office/map.json">
+      <div class="icon">🎮</div>
+      <h2>Playful Office</h2>
+      <p>A fun and colorful office with game zones, chill areas, and creative spaces.</p>
+      <span class="badge green">Fun & Creative</span>
+    </a>
+    <a class="card" href="http://play.workadventure.localhost/_/global/maps.workadventure.localhost/startup-office/map.json">
+      <div class="icon">🚀</div>
+      <h2>New Startup Office</h2>
+      <p>Modern open-space startup vibe with collaboration zones and innovation hubs.</p>
+      <span class="badge orange">Startup Vibes</span>
+    </a>
+    <a class="card" href="http://play.workadventure.localhost/_/global/maps.workadventure.localhost/underwater-office/map.json">
+      <div class="icon">🐠</div>
+      <h2>Underwater World</h2>
+      <p>Work under the sea! A magical underwater office experience with ocean ambiance.</p>
+      <span class="badge teal">Magical</span>
+    </a>
+  </div>
+</body>
+</html>

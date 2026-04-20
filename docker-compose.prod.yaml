@@ -1,0 +1,11 @@
+# Production override — use with:
+# docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+services:
+  play:
+    command: npm run start
+    environment:
+      STARTUP_COMMAND_4: npm run build
+      STARTUP_COMMAND_5: npm run build-iframe-api
+      NODE_OPTIONS: "--max-old-space-size=8192"
+      VITE_URL: ""
+      ALLOWED_CORS_ORIGIN: "*"
