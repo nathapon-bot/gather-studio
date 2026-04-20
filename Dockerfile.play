@@ -1,0 +1,48 @@
+# ── Stage 1: Build Vite frontend ──────────────────────────────
+FROM node:20-bullseye AS builder
+
+WORKDIR /app
+
+# Copy shared libs and messages (pre-generated protos already in libs/)
+COPY libs ./libs
+COPY messages ./messages
+COPY play ./play
+
+# Install deps and build
+WORKDIR /app/play
+RUN npm ci --legacy-peer-deps 2>&1 | tail -5
+RUN npm run build
+RUN npm run build-iframe-api
+
+# ── Stage 2: Runtime ──────────────────────────────────────────
+FROM node:20-bullseye-slim
+
+# Install nginx for single-port proxy (HTTP + WS → one public port)
+RUN apt-get update && apt-get install -y --no-install-recommends nginx gettext-base \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/play
+
+# Copy built frontend + source (tsx runs server.ts directly)
+COPY --from=builder /app/play/dist           ./dist
+COPY --from=builder /app/play/src            ./src
+COPY --from=builder /app/play/node_modules   ./node_modules
+COPY --from=builder /app/play/package.json   ./package.json
+COPY --from=builder /app/play/tsconfig*.json ./
+COPY --from=builder /app/libs                /app/libs
+COPY --from=builder /app/messages            /app/messages
+
+# Nginx config template
+COPY nginx.play.conf /etc/nginx/sites-available/default.template
+RUN rm -f /etc/nginx/sites-enabled/default
+
+# Startup script
+COPY start-play.sh /start-play.sh
+RUN chmod +x /start-play.sh
+
+ENV PUSHER_HTTP_PORT=3000
+ENV PUSHER_WS_PORT=3001
+ENV NODE_ENV=production
+
+EXPOSE 80
+CMD ["/start-play.sh"]

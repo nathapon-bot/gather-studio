@@ -1,0 +1,72 @@
+services:
+  # ── Play service (frontend + pusher) ─────────────────────────
+  play:
+    build:
+      context: .
+      dockerfile: Dockerfile.play
+    environment:
+      NODE_ENV: production
+      SECRET_KEY: "${SECRET_KEY}"
+      START_ROOM_URL: "${START_ROOM_URL}"
+      PUSHER_URL: "${PUSHER_URL}"
+      FRONT_URL: "${FRONT_URL}"
+      VITE_URL: "${FRONT_URL}"
+      ALLOWED_CORS_ORIGIN: "${ALLOWED_CORS_ORIGIN:-*}"
+      MAX_PER_GROUP: "${MAX_PER_GROUP:-1}"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      API_URL: "back:50051"
+      ENABLE_CHAT: "false"
+      ENABLE_CHAT_UPLOAD: "false"
+      ENABLE_MAP_EDITOR: "false"
+      DISABLE_ANONYMOUS: "false"
+      STORE_VARIABLES_FOR_LOCAL_MAPS: "true"
+      INTERNAL_MAP_STORAGE_URL: ""
+      PUBLIC_MAP_STORAGE_URL: ""
+      UPLOADER_URL: ""
+      ICON_URL: ""
+      MAP_STORAGE_API_TOKEN: ""
+      ADMIN_API_URL: ""
+      ROOM_API_SECRET_KEY: ""
+      PUSHER_HTTP_PORT: "3000"
+      PUSHER_WS_PORT: "3001"
+    depends_on:
+      - back
+      - redis
+
+  # ── Back service (game/room server) ──────────────────────────
+  back:
+    build:
+      context: .
+      dockerfile: Dockerfile.back
+    environment:
+      NODE_ENV: production
+      SECRET_KEY: "${SECRET_KEY}"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      MAX_PER_GROUP: "${MAX_PER_GROUP:-1}"
+      PLAY_URL: "${PUSHER_URL}"
+      STORE_VARIABLES_FOR_LOCAL_MAPS: "true"
+      ENABLE_CHAT: "false"
+      ENABLE_MAP_EDITOR: "false"
+      ADMIN_API_URL: ""
+      MAP_STORAGE_URL: ""
+      INTERNAL_MAP_STORAGE_URL: ""
+    depends_on:
+      - redis
+
+  # ── Maps service (static map files) ──────────────────────────
+  maps:
+    build:
+      context: .
+      dockerfile: Dockerfile.maps
+
+  # ── Redis ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+
+volumes:
+  redisdata:
