@@ -160,33 +160,6 @@ function clearActions() {
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ── ANIMATIONS ────────────────────────────────────────────
-/**
- * Sit-down animation:
- *   1. Quick yellow flash (excitement burst)
- *   2. Settle to orange (busy indicator)
- */
-async function animateSitDown() {
-    try {
-        await WA.player.setOutlineColor(255, 230, 0);   // yellow flash
-        await delay(130);
-        await WA.player.setOutlineColor(255, 130, 0);   // warm orange settle
-    } catch(e) {}
-}
-
-/**
- * Stand-up animation:
- *   1. Quick green flash (release burst)
- *   2. Fade back to no outline
- */
-async function animateStandUp() {
-    try {
-        await WA.player.setOutlineColor(80, 220, 80);   // green flash
-        await delay(200);
-        await WA.player.removeOutlineColor();
-    } catch(e) {}
-}
-
 // ── GO HOME BUTTON ────────────────────────────────────────
 function showGoHomeButton() {
     if (goHomeActionMsg) { goHomeActionMsg.remove(); goHomeActionMsg = undefined; }
@@ -216,31 +189,41 @@ async function sitDown(desk) {
         if (isSitting) return;
         const deskData = getDeskData(desk);
 
-        // FIX 1 ── Snap player exactly onto chair tile before sitting
+        // ── Step 1: Teleport instantly to the exact chair tile centre ──────────
+        // Using teleport (not moveTo) so there is NO walking animation to interfere
+        // with the subsequent sit animation.
         if (deskData) {
-            try {
-                await WA.player.moveTo(deskData.cx, deskData.cy, 1000); // fast snap
-                await delay(80); // let physics settle on the tile
-            } catch(e) {}
+            try { await WA.player.teleport(deskData.cx, deskData.cy); } catch(e) {
+                // Fallback: fast moveTo if teleport unavailable
+                try { await WA.player.moveTo(deskData.cx, deskData.cy, 1000); } catch(e2) {}
+            }
+            await delay(50); // one Phaser frame for the position to register
         }
 
-        isSitting    = true;
-        currentDesk  = desk;
+        isSitting   = true;
+        currentDesk = desk;
         clearActions();
         hideGoHomeButton();
 
-        // FIX 3 ── Sit-down animation before disabling controls
-        await animateSitDown();
+        // ── Step 2: Play the REAL sit animation ───────────────────────────────
+        // setSitting(true) inside Phaser:
+        //   • shifts all character sprites down 4 px
+        //   • plays the "{woka}-down-sit" sprite animation (dedicated sit frames)
+        //   • calls stop() to zero velocity
+        // This MUST happen BEFORE disablePlayerControls so Phaser can render the
+        // first animation frame while the engine is still fully active.
+        await WA.player.setSitting(true);
 
-        WA.player.setStatus('BUSY');
+        // ── Step 3: Lock controls and mark as busy ────────────────────────────
         WA.controls.disablePlayerControls();
-        try { await WA.player.setSitting(true); } catch(e) {}
+        WA.player.setStatus('BUSY');
+        // Subtle orange outline = visual "I'm sitting/busy" cue for other players
+        await WA.player.setOutlineColor(255, 130, 0);
 
-        // Book desk (first sit = auto-book)
+        // ── Step 4: Auto-book on first sit ────────────────────────────────────
         if (myBookedDesk !== desk) {
             if (myBookedDesk) WA.chat.sendChatMessage(`🔄 เปลี่ยนจาก ${getDeskLabel(myBookedDesk)}`, 'ระบบ');
             myBookedDesk   = desk;
-            // Use desk tile centre as the canonical "home" position (precise, no getPosition drift)
             myDeskPosition = deskData ? { x: deskData.cx, y: deskData.cy } : await WA.player.getPosition();
             await WA.player.state.saveVariable('bookedDesk',    desk,           { public: true,  persist: true });
             await WA.player.state.saveVariable('bookedDeskPos', myDeskPosition, { public: false, persist: true });
@@ -260,17 +243,24 @@ async function sitDown(desk) {
 async function standUp() {
     try {
         if (!isSitting) return;
+
+        // ── Step 1: Play the REAL stand animation FIRST ───────────────────────
+        // setSitting(false) inside Phaser:
+        //   • shifts sprites back up 4 px (undo the sit offset)
+        //   • resumes the idle animation for the player's last facing direction
+        // Must happen BEFORE restoring controls so the animation plays cleanly.
+        await WA.player.setSitting(false);
+
+        // ── Step 2: Restore controls and clear status ─────────────────────────
+        WA.controls.restorePlayerControls();
+        WA.player.setStatus('ONLINE');
+        await WA.player.removeOutlineColor();
+
         isSitting   = false;
         currentDesk = undefined;
         nearestDesk = null;
         if (standActionMsg) { standActionMsg.remove(); standActionMsg = undefined; }
-        WA.controls.restorePlayerControls();
-        try { await WA.player.setSitting(false); } catch(e) {}
 
-        // FIX 3 ── Stand-up animation
-        await animateStandUp();
-
-        WA.player.setStatus('ONLINE');
         WA.chat.sendChatMessage(`🚶 ลุกขึ้นแล้ว — โต๊ะ ${getDeskLabel(myBookedDesk)} ยังจองอยู่`, 'ระบบ');
         showGoHomeButton();
     } catch(e) {}
