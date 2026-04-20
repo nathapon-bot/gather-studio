@@ -1,5 +1,4 @@
-[deploy]
-healthcheckPath = "/"
-healthcheckTimeout = 300
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 3
+# Root railway.toml — each service uses its own config file
+# play  → railway.play.toml
+# back  → railway.back.toml
+# maps  → railway.maps.toml
