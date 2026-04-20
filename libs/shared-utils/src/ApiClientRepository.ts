@@ -9,6 +9,17 @@ import { RoomManagerClient, SpaceManagerClient } from "@workadventure/messages/s
 
 const debug = Debug("apiClientRespository");
 
+// gRPC keepalive options — prevents Railway's load balancer from dropping
+// long-lived bidirectional streams after idle timeout
+const GRPC_KEEPALIVE_OPTIONS = {
+    "grpc.keepalive_time_ms": 10_000,           // send ping every 10s
+    "grpc.keepalive_timeout_ms": 5_000,          // wait 5s for pong
+    "grpc.keepalive_permit_without_calls": 1,    // ping even when no RPC in flight
+    "grpc.http2.max_pings_without_data": 0,      // unlimited pings
+    "grpc.http2.min_time_between_pings_ms": 10_000,
+    "grpc.http2.min_ping_interval_without_data_ms": 5_000,
+};
+
 export class ApiClientRepository {
     private roomManagerClients: RoomManagerClient[] = [];
     private spaceManagerClients: SpaceManagerClient[] = [];
@@ -26,6 +37,7 @@ export class ApiClientRepository {
                 {
                     "grpc.max_receive_message_length": GRPC_MAX_MESSAGE_SIZE,
                     "grpc.max_send_message_length": GRPC_MAX_MESSAGE_SIZE,
+                    ...GRPC_KEEPALIVE_OPTIONS,
                 }
             );
         }
@@ -40,6 +52,7 @@ export class ApiClientRepository {
                 this.roomManagerClients[i] = new RoomManagerClient(this.apiUrls[i], grpc.credentials.createInsecure(), {
                     "grpc.max_receive_message_length": GRPC_MAX_MESSAGE_SIZE,
                     "grpc.max_send_message_length": GRPC_MAX_MESSAGE_SIZE,
+                    ...GRPC_KEEPALIVE_OPTIONS,
                 });
             }
         }
@@ -57,6 +70,7 @@ export class ApiClientRepository {
                 {
                     "grpc.max_receive_message_length": GRPC_MAX_MESSAGE_SIZE,
                     "grpc.max_send_message_length": GRPC_MAX_MESSAGE_SIZE,
+                    ...GRPC_KEEPALIVE_OPTIONS,
                 }
             );
         }

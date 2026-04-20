@@ -65,6 +65,12 @@ class App {
         const server = new grpc.Server({
             "grpc.max_receive_message_length": GRPC_MAX_MESSAGE_SIZE, // 20 MB
             "grpc.max_send_message_length": GRPC_MAX_MESSAGE_SIZE, // 20 MB
+            // keepalive: prevents Railway's load balancer from dropping long-lived streams
+            "grpc.keepalive_time_ms": 10_000,
+            "grpc.keepalive_timeout_ms": 5_000,
+            "grpc.keepalive_permit_without_calls": 1,
+            "grpc.http2.max_pings_without_data": 0,
+            "grpc.http2.min_ping_interval_without_data_ms": 5_000,
         });
 
         // When zooming in and out very quickly, each zone subscription creates a HTTP2 stream.
