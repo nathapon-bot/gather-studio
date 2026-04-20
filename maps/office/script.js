@@ -138,7 +138,7 @@ let myPlayerName   = '';
 let sitActionMsg   = undefined;
 let standActionMsg = undefined;
 let goHomeActionMsg= undefined;
-let bookingMenuCmd = undefined;   // dynamic "Book / Unbook" menu entry
+let bookingBtnActive = false;   // tracks whether booking action-bar button is shown
 
 // ── HELPERS ───────────────────────────────────────────────
 function findNearestDesk(px, py) {
@@ -188,30 +188,52 @@ function clearHighlight(deskName) {
     } catch(e) {}
 }
 
-// ── BOOKING MENU COMMAND ──────────────────────────────────
-// Registers a context-sensitive "Book / Unbook" entry while near a desk.
-// Removed when leaving the desk zone.
+// ── BOOKING ACTION-BAR BUTTON ─────────────────────────────
+// Shows a prominent clickable button in the WA action bar.
+// "จองโต๊ะนี้" (green) when near a vacant desk,
+// "ยกเลิกการจอง" (red) when near your own booked desk.
+// Hidden when near someone else's desk or when not near any desk.
 function updateBookingMenu(deskName) {
-    if (bookingMenuCmd) { bookingMenuCmd.remove(); bookingMenuCmd = undefined; }
+    if (bookingBtnActive) {
+        try { WA.ui.buttonActionBar.removeButton('desk-book'); } catch(e) {}
+        bookingBtnActive = false;
+    }
     if (!deskName || isSitting) return;
 
     if (myBookedDesk === deskName) {
         // Already mine → offer unbook
-        bookingMenuCmd = WA.ui.registerMenuCommand(
-            `🔓 ยกเลิกการจอง: ${getDeskLabel(deskName)}`,
-            { callback: () => unbookDesk() }
-        );
+        try {
+            WA.ui.buttonActionBar.addButton({
+                id: 'desk-book',
+                label: `🔓 ยกเลิกการจอง`,
+                bgColor: '#e74c3c',
+                textColor: '#ffffff',
+                toolTip: `ยกเลิกการจอง: ${getDeskLabel(deskName)}`,
+                callback: () => unbookDesk()
+            });
+            bookingBtnActive = true;
+        } catch(e) {}
     } else if (!deskOwners.has(deskName)) {
         // Vacant → offer booking
-        bookingMenuCmd = WA.ui.registerMenuCommand(
-            `📌 จองโต๊ะ: ${getDeskLabel(deskName)}`,
-            { callback: () => bookDesk(deskName) }
-        );
+        try {
+            WA.ui.buttonActionBar.addButton({
+                id: 'desk-book',
+                label: `📌 จองโต๊ะนี้`,
+                bgColor: '#2ecc71',
+                textColor: '#ffffff',
+                toolTip: `จอง: ${getDeskLabel(deskName)}`,
+                callback: () => bookDesk(deskName)
+            });
+            bookingBtnActive = true;
+        } catch(e) {}
     }
-    // (if owned by someone else — no booking option)
+    // (if owned by someone else — no booking button)
 }
 function clearBookingMenu() {
-    if (bookingMenuCmd) { bookingMenuCmd.remove(); bookingMenuCmd = undefined; }
+    if (bookingBtnActive) {
+        try { WA.ui.buttonActionBar.removeButton('desk-book'); } catch(e) {}
+        bookingBtnActive = false;
+    }
 }
 
 // ── GO HOME BUTTON ────────────────────────────────────────
@@ -411,7 +433,9 @@ WA.onInit().then(async () => {
     WA.ui.registerMenuCommand('📋 ดูสถานะโต๊ะทั้งหมด', { callback: () => showDeskDirectory() });
 
     // Track other players for desk nameplates
+    // configureTracking() MUST be called before any WA.players.* API
     try {
+        await WA.players.configureTracking({ players: true, movement: false });
         for (const p of WA.players.list()) trackPlayer(p);
         WA.players.onPlayerEnters.subscribe(p => trackPlayer(p));
         WA.players.onPlayerLeaves.subscribe(p => {
@@ -419,7 +443,7 @@ WA.onInit().then(async () => {
                 if (o.playerId === p.id) { deskOwners.delete(d); break; }
             if (nearestDesk && !isSitting) showHighlight(nearestDesk);
         });
-    } catch(e) {}
+    } catch(e) { console.warn('[desk] player tracking failed:', e); }
 
     // Proximity polling — drives the chair highlight + approach/leave events
     setInterval(async () => {
