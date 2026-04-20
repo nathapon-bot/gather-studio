@@ -3,29 +3,42 @@ FROM node:22-bullseye AS builder
 
 WORKDIR /app
 
-# Copy shared libs and messages (pre-generated protos in libs/)
-COPY libs ./libs
-COPY messages ./messages
-COPY back ./back
+# Copy root workspace package.json + only the packages back needs
+COPY package.json ./
+COPY libs         ./libs
+COPY messages     ./messages
+COPY back         ./back
 
-WORKDIR /app/back
+# Trim workspaces to only what exists here (avoids errors for missing dirs)
+RUN node -e " \
+  const p = JSON.parse(require('fs').readFileSync('package.json','utf8')); \
+  p.workspaces = ['back', 'libs/*']; \
+  require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)); \
+"
+
+# Install from workspace root — resolves @workadventure/* local packages correctly
 RUN NODE_ENV=development npm install --legacy-peer-deps
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
 FROM node:22-bullseye-slim
 
-WORKDIR /app/back
+WORKDIR /app
 
-COPY --from=builder /app/back/src          ./src
-COPY --from=builder /app/back/node_modules ./node_modules
-COPY --from=builder /app/back/package.json ./package.json
-COPY --from=builder /app/back/tsconfig*.json ./
-COPY --from=builder /app/libs              /app/libs
-COPY --from=builder /app/messages          /app/messages
+# Root node_modules has tsx, workspace symlinks, and all deps
+COPY --from=builder /app/node_modules      ./node_modules
+COPY --from=builder /app/package.json      ./package.json
+COPY --from=builder /app/back/src          ./back/src
+COPY --from=builder /app/back/package.json ./back/package.json
+COPY --from=builder /app/back/tsconfig*.json ./back/
+COPY --from=builder /app/libs              ./libs
+COPY --from=builder /app/messages          ./messages
 
+# Make root .bin available (tsx lives here after workspace hoisting)
+ENV PATH="/app/node_modules/.bin:$PATH"
 ENV NODE_ENV=production
 
 # gRPC port (internal only — play connects to back:50051)
 EXPOSE 8080 50051
 
-CMD ["npm", "run", "runprod"]
+WORKDIR /app/back
+CMD ["tsx", "src/server.ts"]

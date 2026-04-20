@@ -9,8 +9,9 @@ envsubst '$PORT' < /etc/nginx/sites-available/default.template \
     > /etc/nginx/sites-enabled/default
 
 # Start play/pusher service in background
+# Use tsx directly from root node_modules (workspace hoisting)
 cd /app/play
-npm run start &
+TSX_TSCONFIG_PATH=tsconfig-pusher.json tsx src/server.ts &
 
 # Wait for pusher to be ready
 echo "Waiting for pusher to start..."

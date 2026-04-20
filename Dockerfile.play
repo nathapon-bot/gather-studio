@@ -3,34 +3,46 @@ FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
-# Copy shared libs and messages (pre-generated protos already in libs/)
-COPY libs ./libs
-COPY messages ./messages
-COPY play ./play
+# Copy root workspace package.json + only the packages play needs
+COPY package.json ./
+COPY libs         ./libs
+COPY messages     ./messages
+COPY play         ./play
 
-# Install deps and build
-WORKDIR /app/play
+# Trim workspaces to only what exists here (avoids errors for missing dirs)
+RUN node -e " \
+  const p = JSON.parse(require('fs').readFileSync('package.json','utf8')); \
+  p.workspaces = ['play', 'play/packages/iframe-api-typings', 'libs/*']; \
+  require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)); \
+"
+
+# Install from workspace root — resolves @workadventure/* local packages correctly
 RUN NODE_ENV=development npm install --legacy-peer-deps
-RUN npm run build
-RUN npm run build-iframe-api
+
+# Make root .bin available so cross-env / vite are found during build
+ENV PATH="/app/node_modules/.bin:$PATH"
+
+RUN cd play && npm run build
+RUN cd play && npm run build-iframe-api
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
 FROM node:20-bullseye-slim
 
 # Install nginx for single-port proxy (HTTP + WS → one public port)
-RUN apt-get update && apt-get install -y --no-install-recommends nginx gettext-base \
+RUN apt-get update && apt-get install -y --no-install-recommends nginx gettext-base curl \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app/play
+WORKDIR /app
 
-# Copy built frontend + source (tsx runs server.ts directly)
-COPY --from=builder /app/play/dist           ./dist
-COPY --from=builder /app/play/src            ./src
-COPY --from=builder /app/play/node_modules   ./node_modules
-COPY --from=builder /app/play/package.json   ./package.json
-COPY --from=builder /app/play/tsconfig*.json ./
-COPY --from=builder /app/libs                /app/libs
-COPY --from=builder /app/messages            /app/messages
+# Root node_modules has tsx, workspace symlinks, and all deps
+COPY --from=builder /app/node_modules          ./node_modules
+COPY --from=builder /app/package.json          ./package.json
+COPY --from=builder /app/play/dist             ./play/dist
+COPY --from=builder /app/play/src              ./play/src
+COPY --from=builder /app/play/package.json     ./play/package.json
+COPY --from=builder /app/play/tsconfig*.json   ./play/
+COPY --from=builder /app/libs                  ./libs
+COPY --from=builder /app/messages              ./messages
 
 # Nginx config template
 COPY nginx.play.conf /etc/nginx/sites-available/default.template
@@ -40,6 +52,8 @@ RUN rm -f /etc/nginx/sites-enabled/default
 COPY start-play.sh /start-play.sh
 RUN chmod +x /start-play.sh
 
+# Make root .bin available (tsx lives here after workspace hoisting)
+ENV PATH="/app/node_modules/.bin:$PATH"
 ENV PUSHER_HTTP_PORT=3000
 ENV PUSHER_WS_PORT=3001
 ENV NODE_ENV=production
