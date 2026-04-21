@@ -280,6 +280,7 @@ async function sitDown(desk) {
         // Real sit animation: sprite −4 px + "{woka}-down-sit" anim
         await WA.player.setSitting(true);
         WA.controls.disablePlayerControls();
+        WA.controls.disablePlayerProximityMeeting();   // prevent camera auto-open on stand-up
         WA.player.setStatus('BUSY');
         await WA.player.setOutlineColor(255, 130, 0);   // orange = busy
 
@@ -299,6 +300,7 @@ async function standUp() {
         // Real stand animation: sprite +4 px + resume idle
         await WA.player.setSitting(false);
         WA.controls.restorePlayerControls();
+        WA.controls.restorePlayerProximityMeeting();   // re-enable proximity camera (only triggers on fresh approach)
         WA.player.setStatus('ONLINE');
         await WA.player.removeOutlineColor();
 
