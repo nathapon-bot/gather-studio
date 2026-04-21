@@ -195,7 +195,7 @@ function clearHighlight(deskName) {
 // Hidden when near someone else's desk or when not near any desk.
 function updateBookingMenu(deskName) {
     if (bookingBtnActive) {
-        try { WA.ui.buttonActionBar.removeButton('desk-book'); } catch(e) {}
+        try { WA.ui.actionBar.removeButton('desk-book'); } catch(e) {}
         bookingBtnActive = false;
     }
     if (!deskName || isSitting) return;
@@ -203,7 +203,7 @@ function updateBookingMenu(deskName) {
     if (myBookedDesk === deskName) {
         // Already mine → offer unbook
         try {
-            WA.ui.buttonActionBar.addButton({
+            WA.ui.actionBar.addButton({
                 id: 'desk-book',
                 label: `🔓 ยกเลิกการจอง`,
                 bgColor: '#e74c3c',
@@ -216,7 +216,7 @@ function updateBookingMenu(deskName) {
     } else if (!deskOwners.has(deskName)) {
         // Vacant → offer booking
         try {
-            WA.ui.buttonActionBar.addButton({
+            WA.ui.actionBar.addButton({
                 id: 'desk-book',
                 label: `📌 จองโต๊ะนี้`,
                 bgColor: '#2ecc71',
@@ -231,7 +231,7 @@ function updateBookingMenu(deskName) {
 }
 function clearBookingMenu() {
     if (bookingBtnActive) {
-        try { WA.ui.buttonActionBar.removeButton('desk-book'); } catch(e) {}
+        try { WA.ui.actionBar.removeButton('desk-book'); } catch(e) {}
         bookingBtnActive = false;
     }
 }
