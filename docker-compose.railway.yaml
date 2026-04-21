@@ -13,8 +13,9 @@ services:
       VITE_URL: "${FRONT_URL}"
       ALLOWED_CORS_ORIGIN: "${ALLOWED_CORS_ORIGIN:-*}"
       MAX_PER_GROUP: "${MAX_PER_GROUP:-1}"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
+      REDIS_HOST: "${REDIS_HOST:-redis}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       API_URL: "back:50051"
       ENABLE_CHAT: "false"
       ENABLE_CHAT_UPLOAD: "false"
@@ -42,8 +43,9 @@ services:
     environment:
       NODE_ENV: production
       SECRET_KEY: "${SECRET_KEY}"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
+      REDIS_HOST: "${REDIS_HOST:-redis}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-}"
       MAX_PER_GROUP: "${MAX_PER_GROUP:-1}"
       PLAY_URL: "${PUSHER_URL}"
       STORE_VARIABLES_FOR_LOCAL_MAPS: "true"
