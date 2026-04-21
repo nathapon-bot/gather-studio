@@ -222,10 +222,10 @@ export class IoSocketController {
         this.app.ws<SocketData | UpgradeFailedData>("/ws/room", {
             /* Options */
             //compression: uWS.SHARED_COMPRESSOR,
-            idleTimeout: SOCKET_IDLE_TIMER ?? 120, // Default 120s idle timeout
+            idleTimeout: SOCKET_IDLE_TIMER ?? 600, // Default 600s (was 120s) — Chrome intensive throttling needs >60s
             sendPingsAutomatically: true, // Send WebSocket ping frames to keep proxies (Cloudflare etc.) alive
             maxPayloadLength: 16 * 1024 * 1024,
-            maxBackpressure: 65536, // Maximum 64kB of data in the buffer.
+            maxBackpressure: 262144, // 256KB (was 64KB) — prevents message drops in busy rooms
             upgrade: (res, req, context) => {
                 (async () => {
                     /* Keep track of abortions */

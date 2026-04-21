@@ -9,6 +9,16 @@ const config: RedisClientOptions = {
     socket: {
         host: REDIS_HOST,
         port: REDIS_PORT,
+        // Exponential backoff reconnect: 500ms, 1s, 1.5s … up to 30s
+        reconnectStrategy: (retries: number) => {
+            if (retries > 40) {
+                console.error("Redis: too many reconnect attempts, giving up");
+                return new Error("Redis: too many reconnect attempts");
+            }
+            const delay = Math.min(retries * 500, 30_000);
+            console.info(`Redis: reconnecting in ${delay}ms (attempt ${retries})`);
+            return delay;
+        },
     },
 };
 
@@ -26,13 +36,23 @@ if (redisClient) {
         Sentry.captureException(err);
         if (pingInterval) {
             clearInterval(pingInterval);
+            pingInterval = null;
         }
     });
-    redisClient.on("connect", () => {
-        console.info("Redis client is connected");
-    });
+    redisClient.on("connect",      () => console.info("Redis client is connected"));
     redisClient.on("reconnecting", () => console.info("Redis client is reconnecting"));
-    redisClient.on("ready", () => console.info("Redis client is ready"));
+    redisClient.on("ready", () => {
+        console.info("Redis client is ready");
+        // Re-arm ping interval after reconnect
+        if (pingInterval === null) {
+            pingInterval = setInterval(() => {
+                redisClient.ping().catch((err) => {
+                    console.error("Redis Ping Interval Error", err);
+                    Sentry.captureException(err);
+                });
+            }, 60_000); // ping every 60s (was 4 minutes) for faster failure detection
+        }
+    });
 }
 
 export type RedisClient = NonNullable<typeof redisClient>;
@@ -45,16 +65,6 @@ export async function getRedisClient(): Promise<RedisClient | null> {
     if (!redisClient.isOpen && connectPromise === null) {
         connectPromise = redisClient
             .connect()
-            .then(() => {
-                if (pingInterval === null) {
-                    pingInterval = setInterval(() => {
-                        redisClient.ping().catch((err) => {
-                            console.error("Redis Ping Interval Error", err);
-                            Sentry.captureException(err);
-                        });
-                    }, 1000 * 60 * 4);
-                }
-            })
             .finally(() => {
                 connectPromise = null;
             });
