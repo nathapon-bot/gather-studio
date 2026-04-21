@@ -74,7 +74,7 @@ const desks = [
     { name: 'desk_product_8_B', cx: 144, cy: 720, label: '📦B Product' },
     { name: 'desk_product_9_B', cx: 176, cy: 720, label: '📦B Product' },
     { name: 'desk_pm_corner_B',   cx: 208, cy: 816, label: '📦B PM' },
-    { name: 'desk_pm_corner_2_B', cx: 208, cy: 848, label: '📦B PM' },
+    { name: 'desk_pm_corner_2_B', cx: 208, cy: 816, label: '📦B PM' }, // cy fixed: 848→816 (tile 6,25 has chair; 6,26 is empty)
     { name: 'desk_EL_1_B', cx: 336, cy: 784, label: '🏢B East-L 1' },
     { name: 'desk_EL_2_B', cx: 432, cy: 784, label: '🏢B East-L 2' },
     { name: 'desk_EL_3_B', cx: 336, cy: 848, label: '🏢B East-L 3' },
@@ -89,8 +89,7 @@ const desks = [
     { name: 'desk_qa_4_B', cx: 912, cy:  944, label: '🧪B QA' },
     { name: 'desk_qa_5_B', cx: 816, cy: 1008, label: '🧪B QA' },
     { name: 'desk_qa_6_B', cx: 912, cy: 1008, label: '🧪B QA' },
-    { name: 'desk_qa_7_B', cx: 816, cy: 1040, label: '🧪B QA' },
-    { name: 'desk_qa_8_B', cx: 912, cy: 1040, label: '🧪B QA' },
+    // desk_qa_7_B (816,1040) and desk_qa_8_B (912,1040) removed — row 32 has no chair tiles on Floor B
     { name: 'desk_center_1_B',  cx: 400, cy:  944, label: '💻B Dev-U 1' },
     { name: 'desk_center_2_B',  cx: 464, cy:  944, label: '💻B Dev-U 2' },
     { name: 'desk_center_3_B',  cx: 528, cy:  944, label: '💻B Dev-U 3' },
@@ -103,17 +102,8 @@ const desks = [
     { name: 'desk_center_10_B', cx: 464, cy: 1072, label: '💻B Dev-L 4' },
     { name: 'desk_center_11_B', cx: 496, cy: 1072, label: '💻B Dev-L 5' },
     { name: 'desk_center_12_B', cx: 560, cy: 1072, label: '💻B Dev-L 6' },
-    { name: 'desk_sw_1_B', cx: 176, cy: 1136, label: '💻B SW 1' },
-    { name: 'desk_sw_2_B', cx: 176, cy: 1200, label: '💻B SW 2' },
-    { name: 'desk_south_1_B', cx: 400, cy: 1232, label: '💻B South 1' },
-    { name: 'desk_south_2_B', cx: 560, cy: 1232, label: '💻B South 2' },
-    { name: 'desk_south_3_B', cx: 400, cy: 1264, label: '💻B South 3' },
-    { name: 'desk_south_4_B', cx: 560, cy: 1264, label: '💻B South 4' },
-    { name: 'desk_se_1_B', cx: 688, cy: 1200, label: '🏢B SE 1' },
-    { name: 'desk_se_2_B', cx: 784, cy: 1200, label: '🏢B SE 2' },
-    { name: 'desk_se_3_B', cx: 848, cy: 1232, label: '🏢B SE 3' },
-    { name: 'desk_se_4_B', cx: 720, cy: 1200, label: '🏢B SE 4' },
-    { name: 'desk_se_5_B', cx: 816, cy: 1200, label: '🏢B SE 5' },
+    // desk_sw_1_B, desk_sw_2_B, desk_south_1-4_B, desk_se_1-5_B removed —
+    // Floor B map ends at row 33 (1072px); these sections don't exist on Floor B
 ];
 
 // ── CONSTANTS ─────────────────────────────────────────────
