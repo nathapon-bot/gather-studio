@@ -129,16 +129,18 @@ const TILE_OTHER        = 2958;   // red    border — someone else's desk
 const deskOwners = new Map();
 
 // ── STATE ─────────────────────────────────────────────────
-let isSitting      = false;
-let currentDesk    = undefined;
-let nearestDesk    = null;
-let myBookedDesk   = undefined;
-let myDeskPosition = null;
-let myPlayerName   = '';
-let sitActionMsg   = undefined;
-let standActionMsg = undefined;
-let goHomeActionMsg= undefined;
+let isSitting        = false;
+let currentDesk      = undefined;
+let nearestDesk      = null;
+let myBookedDesk     = undefined;
+let myDeskPosition   = null;
+let myPlayerName     = '';
+let sitActionMsg     = undefined;
+let standActionMsg   = undefined;
+let goHomeActionMsg  = undefined;
 let bookingBtnActive = false;   // tracks whether booking action-bar button is shown
+let proximityEnabled = false;   // proximity chat is opt-in; disabled by default
+let proximityMenuCmd = undefined;
 
 // ── HELPERS ───────────────────────────────────────────────
 function findNearestDesk(px, py) {
@@ -300,7 +302,8 @@ async function standUp() {
         // Real stand animation: sprite +4 px + resume idle
         await WA.player.setSitting(false);
         WA.controls.restorePlayerControls();
-        WA.controls.restorePlayerProximityMeeting();   // re-enable proximity camera (only triggers on fresh approach)
+        // Only restore proximity meeting if user has opted it in
+        if (proximityEnabled) WA.controls.restorePlayerProximityMeeting();
         WA.player.setStatus('ONLINE');
         await WA.player.removeOutlineColor();
 
@@ -373,22 +376,13 @@ function onApproachDesk(desk) {
     updateBookingMenu(desk);
     hideGoHomeButton();
 
-    const ownerName = getDeskOwnerName(desk);
-    if (ownerName) {
-        // Someone else's booked desk — show owner name; still allow sitting
-        sitActionMsg = WA.ui.displayActionMessage({
-            message: `🔴 ของ ${ownerName} — SPACE นั่ง`,
-            type: 'warning',
-            callback: () => sitDown(desk)
-        });
-    } else {
-        // Vacant or my desk — minimal hint
-        sitActionMsg = WA.ui.displayActionMessage({
-            message: '💺 SPACE — นั่ง',
-            type: 'message',
-            callback: () => sitDown(desk)
-        });
-    }
+    // Minimal action message — just registers the SPACE key callback
+    // The chair highlight is the visual cue; no intrusive popup text
+    sitActionMsg = WA.ui.displayActionMessage({
+        message: '💺',
+        type: 'message',
+        callback: () => sitDown(desk)
+    });
 }
 
 function onLeaveDesk(desk) {
@@ -396,6 +390,28 @@ function onLeaveDesk(desk) {
     clearBookingMenu();
     if (sitActionMsg) { sitActionMsg.remove(); sitActionMsg = undefined; }
     if (myBookedDesk && myDeskPosition) showGoHomeButton();
+}
+
+// ── PROXIMITY CHAT TOGGLE ─────────────────────────────────
+function updateProximityMenu() {
+    if (proximityMenuCmd) { proximityMenuCmd.remove(); proximityMenuCmd = undefined; }
+    if (proximityEnabled) {
+        proximityMenuCmd = WA.ui.registerMenuCommand('📹 ปิด Proximity Chat', {
+            callback: () => {
+                proximityEnabled = false;
+                WA.controls.disablePlayerProximityMeeting();
+                updateProximityMenu();
+            }
+        });
+    } else {
+        proximityMenuCmd = WA.ui.registerMenuCommand('📹 เปิด Proximity Chat', {
+            callback: () => {
+                proximityEnabled = true;
+                if (!isSitting) WA.controls.restorePlayerProximityMeeting();
+                updateProximityMenu();
+            }
+        });
+    }
 }
 
 // ── PLAYER TRACKING ───────────────────────────────────────
@@ -430,9 +446,13 @@ WA.onInit().then(async () => {
         }
     } catch(e) {}
 
+    // Proximity chat: disabled by default (opt-in via menu)
+    try { WA.controls.disablePlayerProximityMeeting(); } catch(e) {}
+
     // Persistent menu commands
     WA.ui.registerMenuCommand('🏠 ไปที่โต๊ะของฉัน',    { callback: () => goToMyDesk() });
     WA.ui.registerMenuCommand('📋 ดูสถานะโต๊ะทั้งหมด', { callback: () => showDeskDirectory() });
+    updateProximityMenu();   // "📹 เปิด Proximity Chat" toggle
 
     // Track other players for desk nameplates
     // configureTracking() MUST be called before any WA.players.* API
