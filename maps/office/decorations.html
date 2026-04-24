@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<title>Desk Decorations</title>
+<script src="https://play-production-0070.up.railway.app/iframe_api.js"></script>
+<style>
+    :root {
+        --bg:          rgba(24, 26, 34, 0.96);
+        --panel:       rgba(40, 45, 58, 0.98);
+        --accent:      #4aa3ff;
+        --accent-dim:  rgba(74, 163, 255, 0.18);
+        --danger:      #e74c3c;
+        --text:        #f4f6fa;
+        --text-dim:    #9ca3af;
+        --border:      rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+        margin: 0; padding: 0; width: 100%; height: 100%;
+        background: transparent; overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        color: var(--text);
+    }
+    .wrap {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px;
+    }
+    .panel {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        width: 360px;
+        max-width: 100%;
+        max-height: 100%;
+        padding: 16px 18px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        display: flex; flex-direction: column; gap: 12px;
+        overflow: auto;
+    }
+    .header {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 8px;
+    }
+    .title {
+        font-size: 15px; font-weight: 700;
+    }
+    .subtitle {
+        font-size: 12px; color: var(--text-dim); margin-top: 2px;
+    }
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-dim);
+        font-size: 20px;
+        width: 28px; height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .close-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+
+    .section-label {
+        font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--text-dim); margin-top: 4px;
+    }
+    .slots {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+    .slot {
+        aspect-ratio: 1 / 1;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: transform 100ms ease, border-color 100ms, background 100ms;
+        user-select: none;
+    }
+    .slot:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .slot.filled { background: var(--accent-dim); border-color: var(--accent); }
+    .slot-icon { font-size: 26px; line-height: 1; }
+    .slot-label { font-size: 10px; color: var(--text-dim); }
+    .slot.filled .slot-label { color: var(--text); }
+
+    .palette {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    .item-btn {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 4px;
+        color: var(--text);
+        cursor: pointer;
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        font: inherit;
+        transition: transform 100ms ease, border-color 100ms, background 100ms;
+    }
+    .item-btn:hover { border-color: var(--accent); }
+    .item-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+    .item-btn.danger { border-color: rgba(231,76,60,0.35); }
+    .item-btn.danger.active { border-color: var(--danger); background: rgba(231,76,60,0.18); }
+    .item-icon { font-size: 20px; line-height: 1; }
+    .item-name { font-size: 10px; color: var(--text-dim); }
+    .item-btn.active .item-name { color: var(--text); }
+
+    .status {
+        font-size: 12px; color: var(--text-dim);
+        min-height: 1.5em;
+        padding: 6px 10px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 6px;
+        line-height: 1.3;
+    }
+    .status.hint { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="panel">
+        <div class="header">
+            <div>
+                <div class="title">🎨 แต่งโต๊ะ</div>
+                <div class="subtitle" id="deskLabel">–</div>
+            </div>
+            <button class="close-btn" id="closeBtn" title="ปิด">✕</button>
+        </div>
+
+        <div class="section-label">ช่องวาง (คลิกเพื่อวาง/ลบ)</div>
+        <div class="slots" id="slots"></div>
+
+        <div class="section-label">รายการของตกแต่ง</div>
+        <div class="palette" id="palette"></div>
+
+        <div class="status" id="status">เลือกของตกแต่งก่อน แล้วคลิกช่องเพื่อวาง</div>
+    </div>
+</div>
+
+<script>
+    // Palette definition — must match DECOR_ITEMS in script.js
+    const ITEMS = [
+        { key: 'plant',   icon: '🪴', name: 'ต้นไม้' },
+        { key: 'lamp',    icon: '💡', name: 'โคมไฟ' },
+        { key: 'coffee',  icon: '☕', name: 'กาแฟ' },
+        { key: 'monitor', icon: '🖥️', name: 'จอ' },
+        { key: 'papers',  icon: '📚', name: 'เอกสาร' },
+        { key: 'picture', icon: '🖼️', name: 'กรอบรูป' },
+    ];
+    const REMOVE_KEY = '__remove__';
+    const SLOT_COUNT = 3;
+
+    const byKey = Object.fromEntries(ITEMS.map(i => [i.key, i]));
+    let selectedItem = null;        // key or REMOVE_KEY or null
+    let currentSlots = [null, null, null];
+    let currentDeskLabel = '';
+
+    const $slots   = document.getElementById('slots');
+    const $palette = document.getElementById('palette');
+    const $status  = document.getElementById('status');
+    const $close   = document.getElementById('closeBtn');
+    const $label   = document.getElementById('deskLabel');
+
+    function renderSlots() {
+        $slots.innerHTML = '';
+        for (let i = 0; i < SLOT_COUNT; i++) {
+            const slot = currentSlots[i];
+            const div = document.createElement('div');
+            div.className = 'slot' + (slot ? ' filled' : '');
+            div.dataset.idx = String(i);
+            const item = slot ? byKey[slot] : null;
+            div.innerHTML = `
+                <div class="slot-icon">${item ? item.icon : '＋'}</div>
+                <div class="slot-label">${item ? item.name : 'ว่าง'}</div>
+            `;
+            div.addEventListener('click', () => onSlotClick(i));
+            $slots.appendChild(div);
+        }
+    }
+
+    function renderPalette() {
+        $palette.innerHTML = '';
+        for (const it of ITEMS) {
+            const btn = document.createElement('button');
+            btn.className = 'item-btn' + (selectedItem === it.key ? ' active' : '');
+            btn.innerHTML = `<div class="item-icon">${it.icon}</div><div class="item-name">${it.name}</div>`;
+            btn.addEventListener('click', () => selectItem(it.key));
+            $palette.appendChild(btn);
+        }
+        // Remove button
+        const rm = document.createElement('button');
+        rm.className = 'item-btn danger' + (selectedItem === REMOVE_KEY ? ' active' : '');
+        rm.innerHTML = `<div class="item-icon">🗑️</div><div class="item-name">ลบ</div>`;
+        rm.addEventListener('click', () => selectItem(REMOVE_KEY));
+        $palette.appendChild(rm);
+    }
+
+    function selectItem(key) {
+        selectedItem = (selectedItem === key ? null : key);
+        renderPalette();
+        updateStatus();
+    }
+
+    function updateStatus() {
+        if (selectedItem === REMOVE_KEY) {
+            $status.textContent = '🗑️ คลิกช่องที่มีของอยู่เพื่อลบ';
+            $status.className = 'status hint';
+        } else if (selectedItem) {
+            const it = byKey[selectedItem];
+            $status.textContent = `วาง ${it.icon} ${it.name} — คลิกช่องที่ต้องการ`;
+            $status.className = 'status hint';
+        } else {
+            $status.textContent = 'เลือกของตกแต่งก่อน แล้วคลิกช่องเพื่อวาง';
+            $status.className = 'status';
+        }
+    }
+
+    function onSlotClick(idx) {
+        if (selectedItem === REMOVE_KEY) {
+            if (!currentSlots[idx]) return; // nothing to remove
+            sendAction({ action: 'set', slot: idx, item: null });
+        } else if (selectedItem) {
+            sendAction({ action: 'set', slot: idx, item: selectedItem });
+        } else {
+            $status.textContent = 'เลือกของตกแต่งจากด้านล่างก่อน';
+            $status.className = 'status hint';
+        }
+    }
+
+    function sendAction(payload) {
+        try { WA.event.broadcast('mimo-decor', payload); } catch(e) { console.warn(e); }
+    }
+
+    WA.onInit().then(() => {
+        WA.event.on('mimo-decor-state').subscribe((ev) => {
+            const d = ev.data || {};
+            if (Array.isArray(d.slots)) {
+                currentSlots = d.slots.slice(0, SLOT_COUNT);
+                while (currentSlots.length < SLOT_COUNT) currentSlots.push(null);
+                renderSlots();
+            }
+            if (typeof d.deskLabel === 'string') {
+                currentDeskLabel = d.deskLabel;
+                $label.textContent = d.deskLabel;
+            }
+        });
+        // Announce ready so script.js pushes current state
+        try { WA.event.broadcast('mimo-decor', { action: 'ready' }); } catch(e){}
+    }).catch((e) => console.warn('[decor] WA.onInit failed', e));
+
+    $close.addEventListener('click', () => {
+        try { WA.event.broadcast('mimo-decor', { action: 'close' }); } catch(e){}
+    });
+
+    renderSlots();
+    renderPalette();
+</script>
+</body>
+</html>

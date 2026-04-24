@@ -111,6 +111,25 @@ const TILE_VACANT       = 2956;   // green  border — vacant (no one booked)
 const TILE_MINE         = 2957;   // blue   border — my booked desk
 const TILE_OTHER        = 2958;   // red    border — someone else's desk
 
+// ── DESK DECORATIONS ──────────────────────────────────────
+// Owners of a desk can decorate it with up to DECOR_SLOTS items painted
+// on the 'decorations' tile layer. State lives in a single room-wide
+// WA.state variable 'deskDecor' so everyone sees the same thing.
+const DECOR_LAYER       = 'decorations';
+const DECOR_SLOTS       = 3;
+const DECOR_STATE_KEY   = 'deskDecor';
+// Tile GIDs — pick from existing tilesets. Tune the numbers if you want
+// different visuals. Firstgid ranges:
+//   WA_Decoration 13–108, WA_Miscellaneous 109–218, WA_Tables 1557–1826.
+const DECOR_ITEMS = {
+    plant:   { tileId: 13,   icon: '🪴', name: 'ต้นไม้' },
+    lamp:    { tileId: 14,   icon: '💡', name: 'โคมไฟ' },
+    coffee:  { tileId: 1557, icon: '☕', name: 'กาแฟ' },
+    monitor: { tileId: 1558, icon: '🖥️', name: 'จอ' },
+    papers:  { tileId: 1559, icon: '📚', name: 'เอกสาร' },
+    picture: { tileId: 109,  icon: '🖼️', name: 'กรอบรูป' },
+};
+
 // ── DESK OWNER REGISTRY ───────────────────────────────────
 // deskName → { playerName, playerId }
 const deskOwners = new Map();
@@ -126,6 +145,10 @@ let sitActionMsg     = undefined;
 let standActionMsg   = undefined;
 let goHomeActionMsg  = undefined;
 let bookingBtnActive = false;   // tracks whether booking action-bar button is shown
+let _decorBtnActive  = false;   // "🎨 แต่งโต๊ะ" button is shown
+let decorWebsite     = null;    // WA.ui.website handle for decorations.html
+let _decorOpenForDesk = null;   // which desk's palette is currently open (null = closed)
+let _roomDecor       = {};      // local cache of room decor state: { deskName: [itemKey|null, ...] }
 let proximityEnabled = true;    // proximity chat ON by default (allows camera/mic to work)
                                 // users can opt-out from menu; sitting always disables it
 let proximityMenuCmd = undefined;
@@ -268,6 +291,7 @@ function refreshAllBookingHighlights() {
 const MAPS_HOST         = 'https://maps-production-863b.up.railway.app';
 const CHAT_HTML_URL     = `${MAPS_HOST}/office/chat.html`;
 const NAMEPLATES_URL    = `${MAPS_HOST}/office/nameplates.html`;
+const DECORATIONS_URL   = `${MAPS_HOST}/office/decorations.html`;
 
 // ── DESK NAMEPLATES OVERLAY ──────────────────────────────
 // Floating labels above booked desks (blue = mine, red = others').
@@ -409,6 +433,161 @@ async function goToMyDesk() {
     } catch(e) {}
 }
 
+// ── DESK DECORATIONS ─────────────────────────────────────
+// Owner of a desk can open a palette and place up to DECOR_SLOTS items
+// on the 'decorations' tile layer. Room-wide state syncs across players.
+function getDecorSlots(deskName) {
+    const arr = _roomDecor[deskName];
+    if (!Array.isArray(arr)) return Array(DECOR_SLOTS).fill(null);
+    const out = arr.slice(0, DECOR_SLOTS);
+    while (out.length < DECOR_SLOTS) out.push(null);
+    return out;
+}
+
+// Slot layout: 3 tiles in a horizontal row, one tile above the chair.
+// Slot 0 = left of chair, 1 = directly above, 2 = right of chair.
+// Note: in tightly packed desk clusters adjacent desks may share a tile —
+// last-painted wins. Acceptable for v1; future work could skip collisions.
+function slotTilePos(deskData, slotIdx) {
+    const col = Math.floor(deskData.cx / TILE_SIZE);
+    const row = Math.floor(deskData.cy / TILE_SIZE);
+    const offsets = [-1, 0, 1];
+    return { x: col + offsets[slotIdx], y: row - 1 };
+}
+
+function paintDeskSlots(deskName) {
+    const d = getDeskData(deskName);
+    if (!d) return;
+    const slots = getDecorSlots(deskName);
+    const edits = [];
+    for (let i = 0; i < DECOR_SLOTS; i++) {
+        const pos = slotTilePos(d, i);
+        const key = slots[i];
+        const item = key ? DECOR_ITEMS[key] : null;
+        edits.push({ x: pos.x, y: pos.y, tile: item ? item.tileId : null, layer: DECOR_LAYER });
+    }
+    try { WA.room.setTiles(edits); } catch(e){ console.warn('[decor] setTiles failed', e); }
+}
+
+function paintAllDecor() {
+    for (const deskName of Object.keys(_roomDecor)) paintDeskSlots(deskName);
+}
+
+async function setDecorSlot(deskName, slotIdx, itemKey) {
+    if (slotIdx < 0 || slotIdx >= DECOR_SLOTS) return;
+    if (itemKey !== null && !DECOR_ITEMS[itemKey]) return;
+    // Update local cache
+    const cur = getDecorSlots(deskName);
+    cur[slotIdx] = itemKey;
+    const allEmpty = cur.every(s => s == null);
+    if (allEmpty) delete _roomDecor[deskName];
+    else          _roomDecor[deskName] = cur;
+    // Repaint just this desk
+    paintDeskSlots(deskName);
+    // Persist to room state — everyone in the room sees the update
+    try { await WA.state.saveVariable(DECOR_STATE_KEY, _roomDecor); }
+    catch(e) { console.warn('[decor] saveVariable failed', e); }
+    // Push refreshed state to open palette
+    if (_decorOpenForDesk === deskName) pushDecorStateToUI(deskName);
+}
+
+function clearDeskDecor(deskName) {
+    if (!_roomDecor[deskName]) return;
+    // Clear tiles first using cached slots, then drop from state
+    const d = getDeskData(deskName);
+    if (d) {
+        const edits = [];
+        for (let i = 0; i < DECOR_SLOTS; i++) {
+            const pos = slotTilePos(d, i);
+            edits.push({ x: pos.x, y: pos.y, tile: null, layer: DECOR_LAYER });
+        }
+        try { WA.room.setTiles(edits); } catch(e){}
+    }
+    delete _roomDecor[deskName];
+    try { WA.state.saveVariable(DECOR_STATE_KEY, _roomDecor); } catch(e){}
+}
+
+function showDecorateButton(deskName) {
+    if (_decorBtnActive) {
+        try { WA.ui.actionBar.removeButton('desk-decorate'); } catch(e) {}
+        _decorBtnActive = false;
+    }
+    // Only the owner can decorate; hide while sitting to avoid overlap with chat bar
+    if (deskName !== myBookedDesk || isSitting) return;
+    try {
+        WA.ui.actionBar.addButton({
+            id:        'desk-decorate',
+            label:     `🎨 แต่งโต๊ะ`,
+            bgColor:   '#9b59b6',
+            textColor: '#ffffff',
+            toolTip:   `แต่งโต๊ะ: ${getDeskLabel(deskName)}`,
+            callback:  () => openDecorateUI(deskName),
+        });
+        _decorBtnActive = true;
+    } catch(e) {}
+}
+
+function hideDecorateButton() {
+    if (!_decorBtnActive) return;
+    try { WA.ui.actionBar.removeButton('desk-decorate'); } catch(e) {}
+    _decorBtnActive = false;
+}
+
+async function openDecorateUI(deskName) {
+    if (decorWebsite) { pushDecorStateToUI(deskName); return; }
+    if (deskName !== myBookedDesk) return;
+    _decorOpenForDesk = deskName;
+    try {
+        decorWebsite = await WA.ui.website.open({
+            url:      DECORATIONS_URL,
+            position: { vertical: 'middle', horizontal: 'right' },
+            size:     { width: '380px', height: '100%' },
+            margin:   { top: '70px', bottom: '70px', right: '12px' },
+            allowApi: true,
+        });
+        // Iframe will send { action: 'ready' } after WA.onInit;
+        // at that point we push the state. This race-safe also covers first-open.
+        pushDecorStateToUI(deskName);
+    } catch(e) { console.warn('[decor] open failed', e); decorWebsite = null; }
+}
+
+async function closeDecorateUI() {
+    _decorOpenForDesk = null;
+    if (!decorWebsite) return;
+    try { await decorWebsite.close(); } catch(e){}
+    decorWebsite = null;
+}
+
+function pushDecorStateToUI(deskName) {
+    if (!deskName) return;
+    const payload = {
+        deskName,
+        deskLabel: getDeskLabel(deskName),
+        slots: getDecorSlots(deskName),
+    };
+    try { WA.event.broadcast('mimo-decor-state', payload); } catch(e){}
+}
+
+function _handleDecorEvent(data) {
+    if (!data || !_decorOpenForDesk) return;
+    if (data.action === 'ready') {
+        pushDecorStateToUI(_decorOpenForDesk);
+        return;
+    }
+    if (data.action === 'close') {
+        closeDecorateUI();
+        return;
+    }
+    if (data.action === 'set') {
+        // Authorization check — only owner can mutate. _decorOpenForDesk is
+        // only set by openDecorateUI which already checks ownership, so this
+        // is defense-in-depth.
+        if (_decorOpenForDesk !== myBookedDesk) return;
+        setDecorSlot(_decorOpenForDesk, data.slot | 0, data.item || null);
+        return;
+    }
+}
+
 // ── SIT / STAND ───────────────────────────────────────────
 async function sitDown(desk) {
     try {
@@ -506,6 +685,10 @@ async function unbookDesk() {
             WA.player.state.saveVariable('playerName',    null, { public: true,  persist: true }),
         ]);
         hideGoHomeButton();
+        hideDecorateButton();
+        if (_decorOpenForDesk === old) closeDecorateUI();
+        // Decor belongs to the current owner — clear it so the next booker starts fresh
+        clearDeskDecor(old);
         WA.chat.sendChatMessage(`🔓 ยกเลิกการจอง: ${getDeskLabel(old)}`, 'ระบบ');
         refreshAllBookingHighlights();
         if (nearestDesk === old) updateBookingMenu(old);
@@ -530,6 +713,7 @@ function onApproachDesk(desk) {
     showHighlight(desk);
     updateBookingMenu(desk);
     hideGoHomeButton();
+    showDecorateButton(desk);
 
     // Minimal action message — just registers the SPACE key callback
     // The chair highlight is the visual cue; no intrusive popup text
@@ -543,8 +727,11 @@ function onApproachDesk(desk) {
 function onLeaveDesk(desk) {
     clearHighlight(desk);
     clearBookingMenu();
+    hideDecorateButton();
     if (sitActionMsg) { sitActionMsg.remove(); sitActionMsg = undefined; }
     if (myBookedDesk && myDeskPosition) showGoHomeButton();
+    // Close the palette if we walk away from our desk while it's open
+    if (_decorOpenForDesk === desk) closeDecorateUI();
 }
 
 // ── PROXIMITY CHAT TOGGLE ─────────────────────────────────
@@ -1399,7 +1586,26 @@ WA.onInit().then(async () => {
             if (ev.senderId !== _myPlayerId) return;
             _handleNameplatesEvent(ev.data);
         });
+        WA.event.on('mimo-decor').subscribe((ev) => {
+            if (ev.senderId !== _myPlayerId) return;
+            _handleDecorEvent(ev.data);
+        });
     } catch(e) { console.warn('[init] event subscribe failed', e); }
+
+    // ─── Room decorations: restore + subscribe ────────────────
+    try {
+        const savedDecor = WA.state.loadVariable(DECOR_STATE_KEY);
+        if (savedDecor && typeof savedDecor === 'object') {
+            _roomDecor = savedDecor;
+            paintAllDecor();
+        }
+        WA.state.onVariableChange(DECOR_STATE_KEY).subscribe((v) => {
+            _roomDecor = (v && typeof v === 'object') ? v : {};
+            paintAllDecor();
+            // If the palette is open for our desk, refresh its displayed state
+            if (_decorOpenForDesk) pushDecorStateToUI(_decorOpenForDesk);
+        });
+    } catch(e) { console.warn('[init] decor state subscribe failed', e); }
 
     // Restore persisted booking
     try {
