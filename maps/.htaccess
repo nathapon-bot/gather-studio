@@ -1,1 +1,38 @@
-Header set Access-Control-Allow-Origin "*"
+# ─── gzip compression (if mod_deflate is available) ────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/json application/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+    # Don't re-compress already-compressed assets
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|webp|woff2?|zip|gz|br)$ no-gzip
+</IfModule>
+
+# ─── Cache headers ─────────────────────────────────────────────
+# Rules:
+#   * .png / .jpg / tilesets → 1 year (change by filename when updated)
+#   * map.json               → 5 min, must-revalidate (changes on map edits)
+#   * script.js / *.html     → 5 min, must-revalidate (fast roll-forward)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(png|jpg|jpeg|webp|gif|woff2?|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.json$">
+        Header set Cache-Control "public, max-age=300, must-revalidate"
+    </FilesMatch>
+    <FilesMatch "\.(js|html)$">
+        Header set Cache-Control "public, max-age=300, must-revalidate"
+    </FilesMatch>
+    # CORS — WA fetches map assets cross-origin from play host
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png             "access plus 1 year"
+    ExpiresByType image/jpeg            "access plus 1 year"
+    ExpiresByType image/webp            "access plus 1 year"
+    ExpiresByType font/woff2            "access plus 1 year"
+    ExpiresByType application/json      "access plus 5 minutes"
+    ExpiresByType text/html             "access plus 5 minutes"
+    ExpiresByType application/javascript "access plus 5 minutes"
+</IfModule>
