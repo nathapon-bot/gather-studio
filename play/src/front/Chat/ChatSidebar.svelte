@@ -105,7 +105,11 @@
 </script>
 
 <svelte:window on:resize={onresize} />
-{#if $chatVisibilityStore}
+<!-- DISABLED: built-in WA chat sidebar (Proximity Chat panel on the left).
+     Conflicts with our custom Lovable chat popup on the right and creates
+     confusion about where to read/write messages. Re-enable by removing
+     `false &&` once the custom chat is retired. -->
+{#if false && $chatVisibilityStore}
     <section
         bind:this={container}
         id="chat"

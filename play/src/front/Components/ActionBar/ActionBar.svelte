@@ -18,7 +18,8 @@
     import { isInRemoteConversation } from "../../Stores/StreamableCollectionStore";
     import MediaSettingsList from "./MediaSettingsList/MediaSettingsList.svelte";
     import CameraMenuItem from "./MenuIcons/CameraMenuItem.svelte";
-    import BackgroundMenuItem from "./MenuIcons/BackgroundMenuItem.svelte";
+    // BackgroundMenuItem disabled in Phase 2 redesign (see usage site below).
+    // import BackgroundMenuItem from "./MenuIcons/BackgroundMenuItem.svelte";
     import MicrophoneMenuItem from "./MenuIcons/MicrophoneMenuItem.svelte";
     import ScreenSharingMenuItem from "./MenuIcons/ScreenSharingMenuItem.svelte";
     import ChatMenuItem from "./MenuIcons/ChatMenuItem.svelte";
@@ -113,11 +114,15 @@
                         {/if}
                         <!-- NAV : CAMERA END -->
 
-                        <!-- NAV : BACKGROUND EFFECTS — dedicated button, opens panel on Background tab -->
+                        <!-- NAV : BACKGROUND EFFECTS — disabled per redesign Phase 2.
+                             ✨ sparkle button cluttered the action bar without
+                             being widely used. Re-enable by uncommenting the
+                             {#if} block below. -->
+                        <!--
                         {#if !$inExternalServiceStore && $myCameraStore}
                             <BackgroundMenuItem />
                         {/if}
-                        <!-- NAV : BACKGROUND EFFECTS END -->
+                        -->
 
                         <!-- NAV : SCREENSHARING START -->
                         {#if $screenSharingAvailableStore}
