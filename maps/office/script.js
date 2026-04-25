@@ -969,7 +969,10 @@ function pushStateToChat() {
             const serialised = JSON.stringify(state);
             if (serialised === _lastPushedState) return;     // no change — skip
             _lastPushedState = serialised;
-            WA.event.broadcast('mimo-chat-state', state);
+            // postMessage uses StructuredClone, which rejects Iterator Helper
+            // objects that JSON tolerates. Round-trip through JSON to strip
+            // any non-cloneable fields that snuck in via Player/state spreads.
+            WA.event.broadcast('mimo-chat-state', JSON.parse(serialised));
         } catch(e){}
     }, 150);
 }
