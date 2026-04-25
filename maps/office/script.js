@@ -274,14 +274,16 @@ function refreshAllBookingHighlights() {
         _setTile(deskName, null);
     }
 
-    // Lazy-open the nameplates iframe only once there IS something to label.
-    // Saves ~100KB iframe_api.js download + WA registration when the room is
-    // empty of booked desks (e.g. fresh deploy).
-    if (keep.size > 0 && !_nameplatesWebsite) {
-        openNameplatesOverlay().catch(() => {});
-    }
-    // Keep the floating name labels in sync with the colour zones
-    pushBookingsToNameplates();
+    // Nameplates iframe DISABLED — Chrome renders cross-origin iframes
+    // (maps-* subdomain inside play-* parent) as opaque white despite
+    // body/html background:transparent. The iframe was covering the
+    // viewport with white. Floating name pills are sacrificed to keep
+    // the rest of the office visible. Re-enable when nameplates can
+    // be served from the play domain (same-origin).
+    // if (keep.size > 0 && !_nameplatesWebsite) {
+    //     openNameplatesOverlay().catch(() => {});
+    // }
+    // pushBookingsToNameplates();
 }
 
 // ── ABSOLUTE URLs for our helper iframes ─────────────────
