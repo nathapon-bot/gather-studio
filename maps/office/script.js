@@ -936,9 +936,7 @@ function buildChatState() {
         // .filter()/.map() chained on it stay as Iterator Helper too, which
         // is NOT an Array (no .length, JSON.stringify ignores it). Force
         // Array.from up front so all downstream array logic works.
-        const rawPlayers = Array.from(WA.players.list());
-        console.log('[chat-debug] WA.players.list raw:', rawPlayers.length, rawPlayers.map(p => ({id: pid(p), name: p.name, myId})));
-        onlineUsers = rawPlayers
+        onlineUsers = Array.from(WA.players.list())
             .filter(p => pid(p) !== myId)
             .map(p => ({
                 id:                 pid(p),
@@ -965,27 +963,16 @@ function buildChatState() {
 let _pushStateTimer = null;
 let _lastPushedState = '';
 function pushStateToChat() {
-    console.log('[chat-debug] pushStateToChat called, chatWebsite=', !!chatWebsite, 'chatReady=', chatReady);
     if (!chatWebsite || !chatReady) return;
     if (_pushStateTimer) return;
     _pushStateTimer = setTimeout(() => {
         _pushStateTimer = null;
-        console.log('[chat-debug] inner setTimeout, chatWebsite=', !!chatWebsite, 'chatReady=', chatReady);
         if (!chatWebsite || !chatReady) return;
         try {
             const state = buildChatState();
             const serialised = JSON.stringify(state);
-            console.log('[chat-debug] state built, users_count=', (state.users || []).length, 'serialised_len=', serialised.length, 'same_as_last=', serialised === _lastPushedState);
             if (serialised === _lastPushedState) return;     // no change — skip
             _lastPushedState = serialised;
-            // DEBUG: log what we're pushing so we can diagnose Online tab being empty.
-            // Remove once the Lovable redesign is verified to display users.
-            console.log('[chat-debug] push state →', {
-                myId: state.myId,
-                users_count: (state.users || []).length,
-                users_sample: (state.users || []).slice(0, 3),
-                rooms_count: (state.rooms || []).length,
-            });
             // postMessage uses StructuredClone, which rejects Iterator Helper
             // objects that JSON tolerates. Round-trip through JSON to strip
             // any non-cloneable fields that snuck in via Player/state spreads.
@@ -1057,7 +1044,8 @@ const CHAT_MARGIN   = { top: '70px', bottom: '70px', right: '12px' };
 async function openChatUI(size) {
     if (chatWebsite) return;
     const _afterOpen = () => { try { updateChatActionBarBtn(); } catch(e){} };
-    _chatCurrentSize = size || _chatCurrentSize || 'M';
+    // Default to S (compact) on every open. User can tap M/L to grow per session.
+    _chatCurrentSize = size || 'S';
     try {
         chatWebsite = await WA.ui.website.open({
             url:       CHAT_HTML_URL,
@@ -1416,7 +1404,6 @@ WA.onInit().then(async () => {
     // originating from our own iframes (same playerId).
     try {
         WA.event.on('mimo-chat').subscribe((ev) => {
-            console.log('[chat-debug] mimo-chat event received:', ev?.data?.type, 'senderId:', ev?.senderId, 'myId:', _myPlayerId);
             // Lenient filter: drop only when both IDs are known AND differ.
             // Strict equality blocked all events when _myPlayerId was undefined
             // (race with WA.player.playerId not being populated yet) — meaning

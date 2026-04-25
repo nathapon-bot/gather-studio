@@ -597,9 +597,9 @@
         </div>
         ${badge}
         <div class="actions">
-          <button data-act="walk" title="เดินไปหา">🚶</button>
-          <button data-act="call" title="โทร">📞</button>
-          <button data-act="dm"   title="ส่งข้อความ">💬</button>
+          <button data-act="walk" title="เดินไปหา user คนนี้">ไป</button>
+          <button data-act="call" title="โทรหา user คนนี้">โทร</button>
+          <button data-act="dm"   title="ส่งข้อความหา user คนนี้">DM</button>
         </div>`;
       row.addEventListener('click', e => {
         const btn = e.target.closest('button[data-act]');
