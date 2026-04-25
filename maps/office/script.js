@@ -652,10 +652,7 @@ async function standUp() {
         if (myBookedDesk && myDeskPosition) showGoHomeButton();
 
         // Re-register booking menu if we're still near the desk
-        if (prevDesk) {
-            updateBookingMenu(prevDesk);
-            showDecorateButton(prevDesk);
-        }
+        if (prevDesk) updateBookingMenu(prevDesk);
     } catch(e) {}
 }
 
@@ -674,10 +671,7 @@ async function bookDesk(deskName) {
         ]);
         WA.chat.sendChatMessage(`📌 จองแล้ว: ${getDeskLabel(deskName)}`, 'ระบบ');
         refreshAllBookingHighlights();
-        if (nearestDesk === deskName) {
-            updateBookingMenu(deskName);
-            showDecorateButton(deskName);
-        }
+        if (nearestDesk === deskName) updateBookingMenu(deskName);
     } catch(e) {}
 }
 
