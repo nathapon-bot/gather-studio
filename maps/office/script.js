@@ -986,43 +986,25 @@ function recomputeChatUnread() {
     updateChatActionBarBtn();
 }
 
-// ── CHAT ACTION-BAR BUTTONS ──────────────────────────────
-// "💬 Chat" toggles the popup on/off. When the popup is open we ALSO show a
-// dedicated "✕" button — the iframe's own X isn't always reliable because
-// cross-origin postMessage from the chat iframe doesn't reach our script
-// iframe under WA's sandbox. Having a button in the game chrome guarantees
-// the user can always close the popup.
-let chatCloseBtnActive = false;
+// ── CHAT ACTION-BAR BUTTON ──────────────────────────────
+// Single "💬 Chat" button toggles the popup on/off. Label flips to indicate
+// state (closed vs open). The in-dialog X also works after the closeChatUI
+// orphan-ref fix, so the separate "✕ ปิด Chat" button is no longer needed.
 function updateChatActionBarBtn() {
-    const label = chatBtnUnread > 0 ? `💬 Chat (${chatBtnUnread})` : '💬 Chat';
+    const isOpen = !!chatWebsite;
+    const base   = isOpen ? '💬 ปิด Chat' : '💬 Chat';
+    const label  = chatBtnUnread > 0 ? `${base} (${chatBtnUnread})` : base;
     try {
         if (chatBtnActive) WA.ui.actionBar.removeButton('chat-open');
         WA.ui.actionBar.addButton({
             id:        'chat-open',
             label,
-            bgColor:   chatBtnUnread > 0 ? '#e74c3c' : '#4aa3ff',
+            bgColor:   chatBtnUnread > 0 ? '#e74c3c' : (isOpen ? '#555' : '#4aa3ff'),
             textColor: '#ffffff',
             toolTip:   chatBtnUnread > 0 ? `มีข้อความใหม่ ${chatBtnUnread} ข้อความ` : 'เปิด/ปิด Chat',
             callback:  () => toggleChatUI(),
         });
         chatBtnActive = true;
-    } catch(e){}
-
-    try {
-        if (chatCloseBtnActive) WA.ui.actionBar.removeButton('chat-close');
-        if (chatWebsite) {
-            WA.ui.actionBar.addButton({
-                id:        'chat-close',
-                label:     '✕ ปิด Chat',
-                bgColor:   '#555',
-                textColor: '#ffffff',
-                toolTip:   'ปิดหน้าต่าง Chat',
-                callback:  () => closeChatUI(),
-            });
-            chatCloseBtnActive = true;
-        } else {
-            chatCloseBtnActive = false;
-        }
     } catch(e){}
 }
 
@@ -1087,7 +1069,7 @@ async function closeChatUI() {
     _lastPushedState = '';               // fresh state on next open
     if (_pushStateTimer)     { clearTimeout(_pushStateTimer);     _pushStateTimer = null; }
     if (_chatPeriodicTimer)  { clearInterval(_chatPeriodicTimer); _chatPeriodicTimer = null; }
-    try { updateChatActionBarBtn(); } catch(e){}    // remove "✕ ปิด Chat" button
+    try { updateChatActionBarBtn(); } catch(e){}    // flip "💬 ปิด Chat" → "💬 Chat"
 
     // Fire-and-forget: don't await WA's response (queryWorkadventure can hang on resize
     // races). We mark the handle closed and move on.
