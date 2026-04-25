@@ -1,174 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-<meta charset="UTF-8" />
-<title>Desk Nameplates</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nameplates</title>
 <script src="https://play-production-0070.up.railway.app/iframe_api.js"></script>
 <style>
-    html, body {
-        margin: 0; padding: 0; width: 100%; height: 100%;
-        background: transparent; overflow: hidden;
-        pointer-events: none;        /* let clicks pass through to the game */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-    }
-    .label {
-        position: absolute;
-        transform: translate(-50%, -100%);
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 11px;
-        font-weight: 600;
-        color: #fff;
-        white-space: nowrap;
-        line-height: 1;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-        will-change: transform;
-        user-select: none;
-        opacity: 0;
-        transition: opacity 160ms ease-out;
-        pointer-events: none;
-    }
-    .label.visible { opacity: 1; }
-    .label.mine  { background: rgba(74,163,255,0.92); }
-    .label.other { background: rgba(231,76,60,0.92); }
-    /* Small triangular pointer under the label, pointing down to the desk */
-    .label::after {
-        content: ""; position: absolute; left: 50%; bottom: -4px;
-        width: 6px; height: 6px;
-        background: inherit;
-        transform: translateX(-50%) rotate(45deg);
-        border-radius: 1px;
-        box-shadow: 2px 2px 3px rgba(0,0,0,0.25);
-    }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: transparent;
+    overflow: hidden;
+    pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "Sukhumvit Set", "IBM Plex Sans Thai Looped", "IBM Plex Sans Thai", "Noto Sans Thai", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  #stage {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .np {
+    position: absolute;
+    top: 0; left: 0;
+    transform: translate3d(-9999px, -9999px, 0);
+    will-change: transform, opacity;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    animation: npIn 220ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes npIn {
+    0%   { opacity: 0; transform: translate3d(var(--x), calc(var(--y) + 8px), 0) scale(0.82); }
+    100% { opacity: 1; transform: translate3d(var(--x), var(--y), 0) scale(1); }
+  }
+  .np-pill {
+    position: relative;
+    transform: translate(-50%, -100%);
+    padding: 4px 11px 4px 11px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 1px rgba(0, 0, 0, 0.6);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .np-pill::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    width: 0; height: 0;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid currentColor;
+  }
+  /* Mine — modern blue gradient */
+  .np.mine .np-pill {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #6366f1 100%);
+    color: #3b82f6;
+    box-shadow:
+      0 4px 12px rgba(59, 130, 246, 0.45),
+      0 0 0 1.5px rgba(255, 255, 255, 0.20) inset,
+      0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  }
+  /* Others — modern coral/red gradient */
+  .np.others .np-pill {
+    background: linear-gradient(135deg, #fb7185 0%, #ef4444 50%, #dc2626 100%);
+    color: #ef4444;
+    box-shadow:
+      0 4px 12px rgba(239, 68, 68, 0.40),
+      0 0 0 1.5px rgba(255, 255, 255, 0.18) inset,
+      0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  }
+  .np .np-pill > span { color: #fff; display: inline-block; }
 </style>
 </head>
 <body>
-<div id="root"></div>
+  <div id="stage"></div>
 <script>
-"use strict";
-/*
- * Desk nameplates overlay.
- *
- * Receives from parent (script.js) via postMessage:
- *   { __np__: true, type: 'bookings', desks: [{name, label, cx, cy, ownerName, isMine}] }
- *   { __np__: true, type: 'camera',   cam: { x, y, width, height, zoom } }
- *
- * Projects world coords to screen via camera scroll/zoom and moves the labels
- * with a single rAF-batched transform update — cheap even with many desks.
- */
-const root = document.getElementById('root');
-const labels = new Map();           // deskName → { el, desk, ownerName, isMine }
-let   cam = null;
+(function () {
+  const stage = document.getElementById('stage');
+  let desks = [];
+  let cam = { x: 0, y: 0, zoom: 1, viewportW: window.innerWidth, viewportH: window.innerHeight };
+  let nodes = new Map();
+  let needsRender = false;
+  let lastSig = '';
 
-function escapeHtml(s) {
-    return String(s == null ? '' : s)
-        .replaceAll('&','&amp;').replaceAll('<','&lt;')
-        .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-}
-
-function applyBookings(desks) {
-    const seen = new Set();
-    for (const d of desks) {
-        seen.add(d.name);
-        let entry = labels.get(d.name);
-        if (!entry) {
-            const el = document.createElement('div');
-            el.className = 'label';
-            root.appendChild(el);
-            entry = { el };
-            labels.set(d.name, entry);
-        }
-        const classes = ['label'];
-        classes.push(d.isMine ? 'mine' : 'other');
-        entry.el.className = classes.join(' ');
-        entry.el.textContent = d.ownerName || '—';
-        entry.cx = d.cx;
-        entry.cy = d.cy;
-        entry.isMine = d.isMine;
+  function syncDom() {
+    const keep = new Set(desks.map(d => d.name));
+    for (const [name, rec] of nodes) {
+      if (!keep.has(name)) { rec.el.remove(); nodes.delete(name); }
     }
-    // Remove labels for desks no longer booked
-    for (const [name, entry] of [...labels]) {
-        if (!seen.has(name)) {
-            entry.el.remove();
-            labels.delete(name);
+    desks.forEach(d => {
+      let rec = nodes.get(d.name);
+      const mine = !!d.isMine;
+      const text = d.ownerName || '';
+      if (!rec) {
+        const el = document.createElement('div');
+        el.className = 'np ' + (mine ? 'mine' : 'others');
+        el.innerHTML = `<div class="np-pill"><span></span></div>`;
+        const span = el.querySelector('span');
+        span.textContent = text;
+        stage.appendChild(el);
+        rec = { el, span, mine, text };
+        nodes.set(d.name, rec);
+      } else {
+        if (rec.mine !== mine) {
+          rec.el.classList.toggle('mine', mine);
+          rec.el.classList.toggle('others', !mine);
+          rec.mine = mine;
         }
-    }
-    scheduleFrame();
-}
-
-// Batch position updates to one per animation frame
-let frameScheduled = false;
-function scheduleFrame() {
-    if (frameScheduled) return;
-    frameScheduled = true;
-    requestAnimationFrame(() => {
-        frameScheduled = false;
-        repositionAll();
+        if (rec.text !== text) { rec.span.textContent = text; rec.text = text; }
+      }
     });
-}
+  }
 
-// The script.js parent sizes this iframe at 100% width but with 100px top +
-// 100px bottom margin to clear the ☰ menu and action bar. We reconstruct the
-// full viewport height by reading the iframe's offset via getBoundingClientRect
-// through WA — but since we're cross-origin, we just infer from our own height
-// knowing parent_vh ≈ our height + 200px.
-const TOP_MARGIN_PX = 100;
+  function project(wx, wy) {
+    const z = cam.zoom || 1;
+    return { x: (wx - cam.x) * z, y: (wy - cam.y) * z };
+  }
 
-function repositionAll() {
-    if (!cam) return;
-    const iframeVW = window.innerWidth;
-    const iframeVH = window.innerHeight;
-    const parentVH = iframeVH + TOP_MARGIN_PX * 2;
-    const topOffset = TOP_MARGIN_PX;
+  function renderFrame() {
+    needsRender = false;
+    const vw = cam.viewportW || window.innerWidth;
+    const vh = cam.viewportH || window.innerHeight;
+    const margin = 80;
+    desks.forEach(d => {
+      const rec = nodes.get(d.name);
+      if (!rec) return;
+      const p = project(d.cx, d.cy);
+      const onScreen = p.x > -margin && p.x < vw + margin && p.y > -margin && p.y < vh + margin;
+      if (!onScreen) {
+        rec.el.style.transform = 'translate3d(-9999px,-9999px,0)';
+        return;
+      }
+      const tx = p.x.toFixed(1) + 'px';
+      const ty = p.y.toFixed(1) + 'px';
+      rec.el.style.setProperty('--x', tx);
+      rec.el.style.setProperty('--y', ty);
+      rec.el.style.transform = `translate3d(${tx}, ${ty}, 0)`;
+    });
+  }
 
-    const margin = 40;
-    for (const entry of labels.values()) {
-        const sx = (entry.cx - cam.x) / cam.width  * iframeVW;
-        const syParent = (entry.cy - cam.y) / cam.height * parentVH;
-        const sy = syParent - topOffset;
-        if (sx < -margin || sx > iframeVW + margin || sy < -margin || sy > iframeVH + margin) {
-            if (entry.el.classList.contains('visible')) entry.el.classList.remove('visible');
-            continue;
-        }
-        // Labels sit ~12px above the desk tile centre
-        entry.el.style.transform = `translate(${sx}px, ${sy - 12}px) translate(-50%, -100%)`;
-        if (!entry.el.classList.contains('visible')) entry.el.classList.add('visible');
-    }
-}
+  function scheduleRender() {
+    if (needsRender) return;
+    needsRender = true;
+    requestAnimationFrame(renderFrame);
+  }
 
-window.addEventListener('resize', scheduleFrame);
+  window.addEventListener('resize', () => {
+    cam.viewportW = window.innerWidth;
+    cam.viewportH = window.innerHeight;
+    scheduleRender();
+  });
 
-// Listen for updates via WA's event system (parent.postMessage doesn't reach
-// the sibling script.js iframe under WA's sandbox).
-const EVT_NP_STATE = 'mimo-np-state';
-const EVT_NP_OUT   = 'mimo-np';
-let _myPlayerId = null;
-
-WA.onInit().then(() => {
-    try { _myPlayerId = WA.player.playerId; } catch(e){}
-
-    // Camera updates are high-frequency (~60fps). Subscribe directly INSIDE
-    // this iframe — no WA.event round-trip, no server fan-out, no 14 other
-    // users' clients wasting CPU filtering irrelevant broadcasts.
+  function broadcast(payload) {
     try {
-        WA.camera.onCameraUpdate().subscribe((c) => {
-            cam = c;
-            scheduleFrame();
-        });
-    } catch(e) { console.warn('[nameplates] camera subscribe failed', e); }
+      if (window.WA && WA.event && typeof WA.event.broadcast === 'function') {
+        WA.event.broadcast('mimo-np', payload);
+      }
+    } catch (e) { console.warn('broadcast failed', e); }
+  }
 
-    // Only booking updates come via WA.event (low frequency)
-    WA.event.on(EVT_NP_STATE).subscribe((ev) => {
-        if (ev.senderId !== _myPlayerId) return;
-        const d = ev.data || {};
-        if (d.type === 'bookings') { applyBookings(d.desks || []); return; }
-        // (camera type retained for backward compat but no longer used here)
-        if (d.type === 'camera')   { cam = d.cam; scheduleFrame(); return; }
-    });
-    // Tell script.js we're ready to receive booking state
-    try { WA.event.broadcast(EVT_NP_OUT, { type: 'ready' }); } catch(e){}
-}).catch((e) => console.warn('[nameplates] WA.onInit failed', e));
+  function applyEvent(data) {
+    if (!data || !data.type) return;
+    if (data.type === 'bookings') {
+      const next = Array.isArray(data.desks) ? data.desks : [];
+      const sig = next.map(d => `${d.name}|${d.cx}|${d.cy}|${d.ownerName||''}|${d.isMine?1:0}`).join('~');
+      desks = next;
+      if (sig !== lastSig) { lastSig = sig; syncDom(); }
+      scheduleRender();
+    } else if (data.type === 'camera') {
+      if (data.cam) {
+        cam.x = +data.cam.x || 0;
+        cam.y = +data.cam.y || 0;
+        cam.zoom = +data.cam.zoom || 1;
+        if (data.cam.viewportW) cam.viewportW = +data.cam.viewportW;
+        if (data.cam.viewportH) cam.viewportH = +data.cam.viewportH;
+      }
+      scheduleRender();
+    }
+  }
+
+  if (window.WA && typeof WA.onInit === 'function') {
+    WA.onInit().then(() => {
+      try {
+        WA.event.on('mimo-np-state').subscribe(ev => {
+          applyEvent(ev && ev.data ? ev.data : ev);
+        });
+      } catch (e) { console.warn('subscribe failed', e); }
+      broadcast({ type: 'ready' });
+    }).catch(err => console.warn('WA.onInit failed', err));
+  }
+})();
 </script>
 </body>
 </html>

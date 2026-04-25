@@ -1,583 +1,777 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chat</title>
-<!-- WorkAdventure iframe API — required for cross-iframe communication
-     (parent.postMessage doesn't reach the sibling script.js iframe under WA's sandbox). -->
 <script src="https://play-production-0070.up.railway.app/iframe_api.js"></script>
 <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
-    /* Root element gets rounded corners — the WA iframe frame itself is square, so we
-       paint our own rounded chat content with a transparent outer margin. */
-    html { width: 100%; height: 100%; background: transparent; }
-    body {
-        width: 100%; height: 100%; overflow: hidden;
-        /* glass-morphism: translucent dark background with strong blur */
-        background: linear-gradient(160deg, rgba(28, 32, 46, 0.78), rgba(18, 20, 32, 0.82));
-        color: #eee;
-        display: flex; flex-direction: column;
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
-        backdrop-filter:         saturate(180%) blur(20px);
-        border-radius: 16px;
-        box-shadow:
-            0 20px 40px rgba(0,0,0,0.45),
-            0 2px 10px rgba(0,0,0,0.25),
-            inset 0 1px 0 rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-    /* Round the first/last child edges so header/input don't "peek out" past the radius */
-    header { border-radius: 16px 16px 0 0; }
-    .input-row { border-radius: 0 0 16px 16px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    /* Modern blue/cyan palette */
+    --accent:        #60a5fa;
+    --accent-2:      #3b82f6;
+    --accent-3:      #2563eb;
+    --accent-glow:   rgba(96, 165, 250, 0.45);
+    --accent-soft:   rgba(96, 165, 250, 0.14);
+    --accent-border: rgba(96, 165, 250, 0.40);
+    --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #6366f1 100%);
+    --gradient-bubble: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    --gradient-accent-soft: linear-gradient(135deg, rgba(96,165,250,0.16), rgba(99,102,241,0.08));
 
-    /* ── Header ── */
-    header {
-        background: linear-gradient(180deg, rgba(50,55,72,0.6), rgba(40,45,60,0.5));
-        padding: 10px 14px;
-        display: flex; align-items: center; gap: 8px;
-        border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 46px;
-    }
-    header h1 { font-size: 14px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    header button {
-        background: rgba(255,255,255,0.08); border: none; color: #eee;
-        padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
-        transition: background 0.15s;
-    }
-    header button:hover { background: rgba(255,255,255,0.15); }
-    header .back { padding: 4px 8px; font-size: 16px; }
-    header .pill {
-        min-width: 28px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-weight: 600; font-size: 11px; letter-spacing: 0.5px;
-        background: rgba(74,163,255,0.15); color: #6cb3ff;
-    }
-    header .pill:hover { background: rgba(74,163,255,0.3); color: #fff; }
+    --danger: #f87171;
+    --online: #34d399;
 
-    /* ── Tabs ── */
-    .tabs { display: flex; background: rgba(0,0,0,0.2); }
-    .tab {
-        flex: 1; padding: 10px; text-align: center; cursor: pointer;
-        font-size: 13px; color: #aaa; border-bottom: 2px solid transparent;
-        transition: all 0.15s;
-    }
-    .tab.active { color: #fff; border-color: #4aa3ff; background: rgba(74,163,255,0.08); }
-    .tab .badge { background: #e74c3c; color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; margin-left: 4px; }
+    --bg-1: rgba(10, 11, 16, 0.82);
+    --surface:        rgba(255, 255, 255, 0.035);
+    --surface-hover:  rgba(255, 255, 255, 0.07);
+    --surface-strong: rgba(255, 255, 255, 0.06);
+    --border:         rgba(255, 255, 255, 0.07);
+    --border-strong:  rgba(255, 255, 255, 0.13);
 
-    /* ── Scrollable areas ── */
-    main { flex: 1; overflow-y: auto; padding: 0; }
-    main::-webkit-scrollbar { width: 6px; }
-    main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    --bubble-other: rgba(255, 255, 255, 0.07);
+    --text:        #f4f4f7;
+    --text-muted:  #a0a3b1;
+    --text-dim:    #6c7080;
 
-    /* ── List items (rooms / users) ── */
-    .item {
-        display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-        cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);
-        transition: background 0.1s;
-    }
-    .item:hover { background: rgba(255,255,255,0.05); }
-    .item.active { background: rgba(74,163,255,0.12); }
-    .avatar {
-        width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(135deg, #4aa3ff, #7b5bff);
-        font-size: 13px; font-weight: 600; color: white;
-    }
-    .avatar.offline { opacity: 0.4; filter: grayscale(0.5); }
-    .item-body { flex: 1; min-width: 0; }
-    .item-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .item-sub { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .item-meta { font-size: 10px; color: #888; margin-left: 6px; }
-    .item-badge { background: #e74c3c; color: white; border-radius: 10px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
-    .row-btn {
-        background: rgba(255,255,255,0.06); border: none; color: #eee; cursor: pointer;
-        width: 30px; height: 30px; border-radius: 50%; font-size: 14px;
-        margin-left: 2px; flex-shrink: 0; transition: all 0.15s;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .row-btn:hover { background: rgba(74,163,255,0.3); transform: scale(1.1); }
-    .row-btn.call-btn:hover { background: rgba(46,204,113,0.4); }
-    .row-btn.walk-btn:hover { background: rgba(123,91,255,0.4); }
-    .section-head {
-        padding: 10px 14px 4px; font-size: 10px; font-weight: 700;
-        color: rgba(255,255,255,0.35); letter-spacing: 1px;
-    }
-    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-
-    /* ── Messages ── */
-    .messages { display: flex; flex-direction: column; gap: 6px; padding: 14px; }
-    .msg { display: flex; flex-direction: column; max-width: 80%; }
-    .msg.out { align-self: flex-end; align-items: flex-end; }
-    .msg.in  { align-self: flex-start; }
-    .msg-meta { font-size: 10px; color: #888; margin-bottom: 2px; }
-    .msg-bubble {
-        padding: 7px 12px; border-radius: 14px; font-size: 13px; line-height: 1.4;
-        word-wrap: break-word; word-break: break-word;
-    }
-    .msg.out .msg-bubble { background: linear-gradient(135deg, #4aa3ff, #3a8be0); color: white; border-bottom-right-radius: 4px; }
-    .msg.in  .msg-bubble { background: rgba(255,255,255,0.09);               color: #eee;  border-bottom-left-radius: 4px; }
-    .msg.system { align-self: center; font-size: 11px; color: #888; font-style: italic; }
-
-    /* ── Input ── */
-    .input-row {
-        display: flex; gap: 6px; padding: 10px; background: rgba(40,45,60,0.9);
-        border-top: 1px solid rgba(255,255,255,0.08);
-    }
-    .input-row input {
-        flex: 1; padding: 9px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-        background: rgba(255,255,255,0.05); color: #eee; font-size: 13px; outline: none;
-    }
-    .input-row input:focus { border-color: #4aa3ff; background: rgba(255,255,255,0.08); }
-    .input-row button {
-        background: linear-gradient(135deg, #4aa3ff, #3a8be0); border: none; color: white;
-        padding: 0 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500;
-    }
-    .input-row button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* ── Empty state ── */
-    .empty { padding: 40px 20px; text-align: center; color: #888; font-size: 13px; }
-    .empty .icon { font-size: 36px; margin-bottom: 10px; display: block; }
-
-    /* ── Selector modal (group / invite) ── */
-    .modal-overlay {
-        position: absolute; inset: 0; background: rgba(0,0,0,0.7);
-        display: flex; align-items: center; justify-content: center; z-index: 100;
-    }
-    .modal {
-        background: rgba(40,45,60,0.98); border-radius: 10px; width: 90%; max-width: 320px;
-        max-height: 80%; display: flex; flex-direction: column;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .modal header { border-radius: 10px 10px 0 0; }
-    .modal .list { overflow-y: auto; flex: 1; }
-    .modal .item input[type=checkbox] { margin-right: 6px; accent-color: #4aa3ff; transform: scale(1.2); }
-    .modal .actions { padding: 10px; display: flex; gap: 6px; border-top: 1px solid rgba(255,255,255,0.1); }
-    .modal .actions button { flex: 1; padding: 8px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; }
-    .modal .actions .primary { background: linear-gradient(135deg, #4aa3ff, #3a8be0); color: white; }
-    .modal .actions .secondary { background: rgba(255,255,255,0.08); color: #eee; }
+    --shadow-glow: 0 6px 20px -6px var(--accent-glow);
+  }
+  html, body {
+    height: 100%;
+    background: transparent;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "Sukhumvit Set", "IBM Plex Sans Thai Looped", "IBM Plex Sans Thai", "Noto Sans Thai", system-ui, sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .app {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 100% 50% at 100% 0%, rgba(59, 130, 246, 0.18), transparent 60%),
+      radial-gradient(ellipse 80% 40% at 0% 100%, rgba(99, 102, 241, 0.10), transparent 60%),
+      var(--bg-1);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* Top header */
+  .top {
+    flex-shrink: 0;
+    padding: 14px 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .top .title {
+    font-size: 16px;
+    font-weight: 700;
+    flex: 1;
+    letter-spacing: -0.015em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: linear-gradient(180deg, #ffffff 0%, #c7c9d4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .top .title .emoji { -webkit-text-fill-color: initial; margin-right: 4px; }
+  .icon-btn {
+    width: 30px; height: 30px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 160ms ease;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover {
+    background: var(--surface-hover); color: var(--text);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+  }
+  .icon-btn:active { transform: translateY(0) scale(0.94); }
+  .size-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 30px;
+    flex-shrink: 0;
+    padding: 2px;
+    gap: 1px;
+  }
+  .size-toggle button {
+    border: 0;
+    background: transparent;
+    color: var(--text-dim);
+    width: 22px;
+    height: 100%;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 160ms ease;
+    border-radius: 7px;
+  }
+  .size-toggle button:hover { color: var(--text); background: var(--surface-hover); }
+  .size-toggle button.active {
+    background: var(--gradient-accent);
+    color: #fff;
+    box-shadow: 0 2px 6px -2px var(--accent-glow);
+  }
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 12px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    padding: 7px 8px;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 160ms ease;
+    text-align: center;
+    border: 0;
+    letter-spacing: 0.01em;
+  }
+  .tab:hover { background: var(--surface-hover); color: var(--text); }
+  .tab.active {
+    background: var(--gradient-accent);
+    color: #fff;
+    box-shadow: 0 4px 12px -4px var(--accent-glow);
+  }
+  /* Views */
+  .views { flex: 1; position: relative; overflow: hidden; }
+  .view {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 280ms cubic-bezier(0.22,1,0.36,1), opacity 200ms ease;
+    background: transparent;
+  }
+  .view.hidden-left  { transform: translateX(-12%); opacity: 0; pointer-events: none; }
+  .view.hidden-right { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+  /* List rows */
+  .list { flex: 1; overflow-y: auto; padding: 8px 8px 12px; }
+  .list::-webkit-scrollbar { width: 6px; }
+  .list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  .list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+  .row {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 160ms ease, transform 160ms ease;
+    position: relative;
+  }
+  .row:hover { background: var(--surface-hover); }
+  .row:active { transform: scale(0.99); }
+  .row .avatar {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: var(--gradient-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px -4px var(--accent-glow);
+    letter-spacing: -0.02em;
+  }
+  .row .avatar .dot {
+    position: absolute; right: -2px; bottom: -2px;
+    width: 12px; height: 12px;
+    background: var(--online);
+    border: 2.5px solid #0a0b10;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+    animation: pulse 2s ease-out infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); }
+    70%  { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+  }
+  .row .meta { flex: 1; min-width: 0; }
+  .row .meta .name {
+    font-size: 13.5px; font-weight: 600;
+    display: flex; justify-content: space-between; gap: 8px; align-items: center;
+    letter-spacing: -0.005em;
+  }
+  .row .meta .name > span:first-child {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  }
+  .row .meta .name .time { font-size: 10.5px; color: var(--text-dim); font-weight: 500; flex-shrink: 0; }
+  .row .meta .snippet {
+    font-size: 12px; color: var(--text-muted);
+    margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .row .badge {
+    background: var(--gradient-bubble);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 7px;
+    min-width: 20px; text-align: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px -2px var(--accent-glow);
+  }
+  .row .actions {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 4px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 160ms ease;
+    background: linear-gradient(90deg, transparent, rgba(18,19,28,0.96) 30%);
+    padding-left: 32px;
+  }
+  .row:hover .actions { opacity: 1; pointer-events: auto; }
+  .row .actions button {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-strong);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 160ms ease;
+  }
+  .row .actions button:hover {
+    background: var(--gradient-accent);
+    border-color: transparent;
+    transform: scale(1.1);
+  }
+  .empty {
+    color: var(--text-dim);
+    text-align: center;
+    padding: 48px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  /* Open room view */
+  .room-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .room-header .room-name {
+    flex: 1; font-size: 14.5px; font-weight: 700;
+    letter-spacing: -0.01em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .messages {
+    flex: 1; overflow-y: auto; padding: 16px 14px 12px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  .messages::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+  .msg {
+    display: flex; flex-direction: column;
+    max-width: 80%; gap: 3px;
+    align-items: flex-start;
+    animation: msgIn 220ms cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.mine { align-self: flex-end; align-items: flex-end; }
+  .msg .author { font-size: 11px; color: var(--text-dim); padding: 0 6px; font-weight: 500; }
+  .msg .bubble {
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    display: inline-block;
+    max-width: 100%;
+    background: var(--bubble-other);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 6px;
+  }
+  .msg.mine .bubble {
+    background: var(--gradient-bubble);
+    color: #fff;
+    border: 1px solid transparent;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 16px;
+    box-shadow: 0 4px 12px -4px var(--accent-glow);
+  }
+  .msg .time { font-size: 10px; color: var(--text-dim); padding: 0 6px; }
+  .compose {
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .compose input {
+    flex: 1;
+    background: var(--surface-strong);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+    outline: none;
+    transition: all 160ms ease;
+    min-width: 0;
+  }
+  .compose input::placeholder { color: var(--text-dim); }
+  .compose input:focus {
+    border-color: var(--accent-border);
+    background: var(--surface-strong);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .compose button {
+    background: var(--gradient-accent);
+    border: 0;
+    color: #fff;
+    border-radius: 12px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 160ms ease;
+    font-family: inherit;
+    box-shadow: 0 4px 12px -4px var(--accent-glow);
+    letter-spacing: 0.02em;
+  }
+  .compose button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -4px var(--accent-glow); }
+  .compose button:active { transform: translateY(0) scale(0.96); }
+  .compose button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+  /* Modal */
+  .modal-back {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms ease;
+    padding: 20px;
+  }
+  .modal-back.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background:
+      radial-gradient(ellipse 100% 60% at 50% 0%, rgba(59, 130, 246, 0.16), transparent 60%),
+      rgba(18, 19, 28, 0.98);
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 340px;
+    max-height: 80vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.94);
+    transition: transform 220ms cubic-bezier(0.22,1,0.36,1);
+    box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.6);
+  }
+  .modal-back.open .modal { transform: scale(1); }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-head .t { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .modal-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .modal-list::-webkit-scrollbar { width: 6px; }
+  .modal-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  .check-row {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 160ms ease;
+  }
+  .check-row:hover { background: var(--surface-hover); }
+  .check-row .av {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: var(--gradient-accent);
+    color: #fff; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .check-row .cb {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 160ms ease;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .check-row.checked .cb {
+    background: var(--gradient-accent);
+    border-color: transparent;
+    box-shadow: 0 2px 6px -2px var(--accent-glow);
+  }
+  .check-row .nm { font-size: 13.5px; flex: 1; font-weight: 500; }
+  .modal-foot {
+    display: flex; gap: 8px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .btn {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 11px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 160ms ease;
+  }
+  .btn:hover { background: var(--surface-hover); }
+  .btn.primary {
+    background: var(--gradient-accent);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 12px -4px var(--accent-glow);
+  }
+  .btn.primary:hover { transform: translateY(-1px); }
+  .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 </style>
 </head>
 <body>
-
-<header id="hdr">
-    <button class="back" id="backBtn" style="display:none;" title="Back">←</button>
-    <h1 id="title">💬 Chat</h1>
-    <!-- Size toggle (S/M/L) lets the user fit the window to the task -->
-    <button id="sizeBtn" class="pill" title="เปลี่ยนขนาดหน้าต่าง">S</button>
-    <button id="inviteBtn" style="display:none;" title="เชิญคนเข้าห้อง">➕</button>
-    <button id="newChatBtn" title="เริ่ม Chat ใหม่">✏️</button>
-    <button id="closeBtn" title="ปิด">✕</button>
-</header>
-
-<main id="main">
-    <div class="empty" id="empty">
-        <span class="icon">💬</span>
-        ยังไม่มีการสนทนา<br/>
-        <small style="opacity:0.6">กด ✏️ ด้านบนเพื่อเริ่ม chat กับเพื่อนร่วมทีม</small>
+  <div class="app">
+    <div class="top">
+      <div class="title"><span class="emoji">💬</span>Chat</div>
+      <div class="size-toggle" id="sizeToggle">
+        <button data-size="S">S</button>
+        <button data-size="M" class="active">M</button>
+        <button data-size="L">L</button>
+      </div>
+      <button class="icon-btn" id="newChatBtn" title="แชทใหม่">✏️</button>
+      <button class="icon-btn" id="closeBtn" title="ปิด">✕</button>
     </div>
-    <div id="roomList"></div>
-    <div class="messages" id="messages" style="display:none;"></div>
-</main>
 
-<!-- Message input row (only in chat view) -->
-<div class="input-row" id="inputRow" style="display:none;">
-    <input id="msgInput" type="text" placeholder="พิมพ์ข้อความ..." maxlength="500" />
-    <button id="sendBtn">ส่ง</button>
-</div>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="rooms">ห้องแชท</button>
+      <button class="tab" data-tab="online">Online</button>
+      <button class="tab" data-tab="dm">Direct</button>
+    </div>
 
-<!-- Modal for selecting users (new chat / invite) -->
-<div class="modal-overlay" id="modal" style="display:none;">
+    <div class="views">
+      <div class="view" id="viewList">
+        <div class="list" id="listEl"></div>
+      </div>
+
+      <div class="view hidden-right" id="viewRoom">
+        <div class="room-header">
+          <button class="icon-btn" id="backBtn">←</button>
+          <div class="room-name" id="roomName">—</div>
+          <button class="icon-btn" id="inviteBtn" title="เชิญสมาชิก">➕</button>
+          <button class="icon-btn" id="closeBtn2" title="ปิด">✕</button>
+        </div>
+        <div class="messages" id="messagesEl"></div>
+        <div class="compose">
+          <input id="msgInput" type="text" placeholder="พิมพ์ข้อความ…" autocomplete="off" />
+          <button id="sendBtn">ส่ง</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-back" id="modalBack">
     <div class="modal">
-        <header><h1 id="modalTitle">เลือกสมาชิก</h1><button id="modalCancel">✕</button></header>
-        <div style="padding: 6px 12px; font-size: 11px; color: #aaa;" id="modalHint">
-            เลือก 1 คน = DM, เลือกหลายคน = Group chat
-        </div>
-        <div class="list" id="modalList"></div>
-        <div class="actions">
-            <button class="secondary" id="modalCancel2">ยกเลิก</button>
-            <button class="primary"   id="modalConfirm">ยืนยัน (0)</button>
-        </div>
+      <div class="modal-head">
+        <div class="t" id="modalTitle">เลือกสมาชิก</div>
+        <button class="icon-btn" id="modalCloseBtn">✕</button>
+      </div>
+      <div class="modal-list" id="modalList"></div>
+      <div class="modal-foot">
+        <button class="btn" id="modalCancel">ยกเลิก</button>
+        <button class="btn primary" id="modalConfirm" disabled>ยืนยัน (0)</button>
+      </div>
     </div>
-</div>
+  </div>
 
 <script>
-"use strict";
+(function () {
+  let state = { rooms: [], users: [], currentRoomId: null, myId: null, size: 'M' };
+  let activeTab = 'rooms';
+  let view = 'list';
+  let modal = { open: false, mode: 'new', selected: new Set() };
 
-// ─── State (synced from parent via postMessage) ────────────
-let state = {
-    myId: '', myName: '',
-    rooms: [],
-    onlineUsers: [],
-    currentRoomId: null,
-};
-let modalMode = null;         // 'newChat' | 'invite' | null
-let modalSelected = new Set();
+  const $list = document.getElementById('listEl');
+  const $tabs = document.querySelectorAll('#tabs .tab');
+  const $viewList = document.getElementById('viewList');
+  const $viewRoom = document.getElementById('viewRoom');
+  const $roomName = document.getElementById('roomName');
+  const $messages = document.getElementById('messagesEl');
+  const $msgInput = document.getElementById('msgInput');
+  const $sendBtn  = document.getElementById('sendBtn');
+  const $backBtn  = document.getElementById('backBtn');
+  const $modalBack = document.getElementById('modalBack');
+  const $modalList = document.getElementById('modalList');
+  const $modalConfirm = document.getElementById('modalConfirm');
+  const $modalCancel = document.getElementById('modalCancel');
+  const $modalCloseBtn = document.getElementById('modalCloseBtn');
+  const $modalTitle = document.getElementById('modalTitle');
+  const $sizeToggle = document.getElementById('sizeToggle');
 
-const $ = (id) => document.getElementById(id);
-
-// ─── WA.event bridge ────────────────────────────────────────
-// All communication with script.js goes through WA's event system because
-// raw postMessage from this iframe can't reach script.js (they're cross-origin
-// siblings under WA's sandbox). WA routes events server-side but filters by
-// senderId so only the same user's iframes react.
-const EVT_IN  = 'mimo-chat-state';   // state pushed *from* script.js
-const EVT_OUT = 'mimo-chat';         // user actions sent *to* script.js
-let _waReady  = false;
-let _myPlayerId = null;
-
-// Queue any user actions fired before WA is ready (rare but possible)
-const _sendQueue = [];
-function send(m) {
-    if (!_waReady) { _sendQueue.push(m); return; }
-    try { WA.event.broadcast(EVT_OUT, m); } catch(e){ console.warn('[chat] send failed', e); }
-}
-
-WA.onInit().then(() => {
-    _waReady = true;
-    try { _myPlayerId = WA.player.playerId; } catch(e){}
-    // Flush anything queued before init finished
-    for (const m of _sendQueue) {
-        try { WA.event.broadcast(EVT_OUT, m); } catch(e){}
-    }
-    _sendQueue.length = 0;
-    // Listen for state pushes addressed to me
-    WA.event.on(EVT_IN).subscribe((ev) => {
-        // WA broadcasts to every user in the room — filter for our own events.
-        if (ev.senderId !== _myPlayerId) return;
-        state = ev.data || state;
-        const nextHash = stateHash(state);
-        if (nextHash === _lastStateHash) return;
-        _lastStateHash = nextHash;
-        render();
-    });
-    // Tell script.js we're ready
-    send({ type: 'ready' });
-}).catch((e) => console.warn('[chat] WA.onInit failed', e));
-
-function init(x) {
-    // x: { text, ts } → return formatted time 14:05
-    const d = new Date(x);
-    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
-function avatarFor(name) {
-    return (name || '?').trim().slice(0,2).toUpperCase();
-}
-
-// ─── Render helpers ────────────────────────────────────────
-function render() {
-    const inRoom = state.currentRoomId && state.rooms.find(r => r.id === state.currentRoomId);
-    $('empty').style.display    = 'none';
-    $('roomList').style.display = inRoom ? 'none' : 'block';
-    $('messages').style.display = inRoom ? 'flex' : 'none';
-    $('inputRow').style.display = inRoom ? 'flex' : 'none';
-    $('backBtn').style.display     = inRoom ? 'inline-block' : 'none';
-    $('inviteBtn').style.display   = inRoom ? 'inline-block' : 'none';
-    $('newChatBtn').style.display  = inRoom ? 'none' : 'inline-block';
-    $('title').textContent = inRoom ? inRoom.name : '💬 Chat';
-
-    if (inRoom) renderMessages(inRoom);
-    else {
-        renderRooms();
-        const hasContent = state.rooms.length > 0 || state.onlineUsers.length > 0;
-        if (!hasContent) $('empty').style.display = 'block';
-    }
-}
-
-function renderRooms() {
-    const host = $('roomList');
-    host.innerHTML = '';
-
-    // ── Recent chats section ─────────────────
-    if (state.rooms.length > 0) {
-        const h = document.createElement('div');
-        h.className = 'section-head';
-        h.textContent = 'RECENT CHATS';
-        host.appendChild(h);
-        const sorted = [...state.rooms].sort((a,b) => {
-            const la = (a.messages && a.messages.length) ? a.messages[a.messages.length-1].ts : 0;
-            const lb = (b.messages && b.messages.length) ? b.messages[b.messages.length-1].ts : 0;
-            return lb - la;
-        });
-        for (const r of sorted) {
-            const lastMsg = (r.messages && r.messages.length) ? r.messages[r.messages.length-1] : null;
-            const el = document.createElement('div');
-            el.className = 'item';
-            const sub = lastMsg
-                ? `<span class="item-sub">${escapeHtml((lastMsg.fromName || '?') + ': ' + lastMsg.text)}</span>`
-                : `<span class="item-sub">${r.members.length} สมาชิก</span>`;
-            const unread = (r.unread || 0) > 0 ? `<span class="item-badge">${r.unread}</span>` : '';
-            el.innerHTML = `
-                <div class="avatar">${escapeHtml(avatarFor(r.name))}</div>
-                <div class="item-body">
-                    <div class="item-name">${escapeHtml(r.name)}</div>
-                    ${sub}
-                </div>
-                ${unread}`;
-            el.addEventListener('click', () => send({ type: 'selectRoom', roomId: r.id }));
-            host.appendChild(el);
-        }
-    }
-
-    // ── Online users section (quick-start chat/call) ─────
-    const h = document.createElement('div');
-    h.className = 'section-head';
-    h.textContent = state.onlineUsers.length > 0
-        ? `ONLINE (${state.onlineUsers.length})`
-        : 'ONLINE (รอ sync…)';
-    host.appendChild(h);
-
-    if (state.onlineUsers.length === 0) {
-        const note = document.createElement('div');
-        note.className = 'empty';
-        note.style.padding = '20px';
-        note.innerHTML = '<span style="opacity:0.6">ยังไม่เห็นใครออนไลน์<br/><small>รอ 2-3 วิให้ระบบซิงค์ หรือกดปุ่ม 🔄 ลอง refresh</small></span>';
-        host.appendChild(note);
-        return;
-    }
-    for (const u of state.onlineUsers) {
-        const el = document.createElement('div');
-        el.className = 'item';
-        const statusDot = statusColor(u.availabilityStatus);
-        const cs = u.customStatus && u.customStatus.emoji
-            ? `${u.customStatus.emoji} ${u.customStatus.label || ''}` : '';
-        el.innerHTML = `
-            <div class="avatar">${escapeHtml(avatarFor(u.name))}</div>
-            <div class="item-body">
-                <div class="item-name">${escapeHtml(u.name)}</div>
-                <span class="item-sub"><span class="status-dot" style="background:${statusDot}"></span>${escapeHtml(cs || statusName(u.availabilityStatus))}</span>
-            </div>
-            <button class="row-btn walk-btn" data-id="${u.id}" title="เดินไปหา">🚶</button>
-            <button class="row-btn call-btn" data-id="${u.id}" title="เรียก / โทร">📞</button>
-            <button class="row-btn chat-btn" data-id="${u.id}" title="Chat ส่วนตัว">💬</button>`;
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.row-btn')) return;
-            send({ type: 'openDm', userId: u.id, userName: u.name });
-        });
-        el.querySelector('.walk-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            send({ type: 'walkTo', userId: u.id });
-        });
-        el.querySelector('.call-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            send({ type: 'callUser', userId: u.id });
-        });
-        el.querySelector('.chat-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            send({ type: 'openDm', userId: u.id, userName: u.name });
-        });
-        host.appendChild(el);
-    }
-}
-
-// (renderUsers removed — online users are now shown inline in renderRooms)
-
-function renderMessages(room) {
-    const host = $('messages');
-    host.innerHTML = '';
-    if (!room.messages || room.messages.length === 0) {
-        host.innerHTML = '<div class="msg system">— เริ่มการสนทนาของคุณ —</div>';
-        return;
-    }
-    for (const m of room.messages) {
-        const el = document.createElement('div');
-        if (m.system) {
-            el.className = 'msg system';
-            el.textContent = m.text;
-        } else {
-            el.className = 'msg ' + (m.from === state.myId ? 'out' : 'in');
-            const meta = m.from === state.myId ? init(m.ts) : `${escapeHtml(m.fromName || '?')} • ${init(m.ts)}`;
-            el.innerHTML = `<div class="msg-meta">${meta}</div><div class="msg-bubble">${escapeHtml(m.text)}</div>`;
-        }
-        host.appendChild(el);
-    }
-    host.parentElement.scrollTop = host.parentElement.scrollHeight;
-}
-
-function statusColor(s) {
-    switch (s) {
-        case 3: case 8: return '#e9c84e';  // AWAY / BACK_IN_A_MOMENT
-        case 7: case 9: return '#e74c3c';  // BUSY / DND
-        case 4: case 6: return '#b05af9';  // JITSI / SPEAKER
-        case 2: case 5: return '#888';     // SILENT / DENY_PROXIMITY
-        default:        return '#68e97a';  // ONLINE
-    }
-}
-function statusName(s) {
-    switch (s) {
-        case 3: return 'Away';
-        case 8: return 'Back in a moment';
-        case 7: return 'Busy';
-        case 9: return 'Do not disturb';
-        case 4: case 6: return 'In meeting';
-        case 2: case 5: return 'Silent';
-        default: return 'Online';
-    }
-}
-function escapeHtml(s) {
+  function broadcast(payload) {
+    try {
+      if (window.WA && WA.event && typeof WA.event.broadcast === 'function') {
+        WA.event.broadcast('mimo-chat', payload);
+      }
+    } catch (e) { console.warn('broadcast failed', e); }
+  }
+  function escapeHtml(s) {
     return String(s == null ? '' : s)
-        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-        .replaceAll('"','&quot;').replaceAll("'",'&#39;');
-}
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function initials(name) { if (!name) return '?'; return String(name).trim().charAt(0).toUpperCase(); }
+  function fmtTime(t) {
+    if (!t) return '';
+    if (typeof t === 'string') return t;
+    try { return new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+    catch { return ''; }
+  }
 
-// ─── Modal (user multi-select) ─────────────────────────────
-function updateConfirmLabel() {
-    const n = modalSelected.size;
-    const btn = $('modalConfirm');
-    if (modalMode === 'newChat') {
-        btn.textContent = n === 0 ? 'ยืนยัน (0)'
-            : n === 1 ? `เริ่ม DM (1)` : `สร้างกลุ่ม (${n})`;
-    } else {
-        btn.textContent = n === 0 ? 'ยืนยัน (0)' : `เชิญเข้าห้อง (${n})`;
+  function renderList() {
+    let items = [];
+    if (activeTab === 'rooms') items = (state.rooms || []).filter(r => !r.isDm);
+    else if (activeTab === 'dm') items = (state.rooms || []).filter(r => r.isDm);
+    else if (activeTab === 'online') {
+      items = (state.users || []).filter(u => u.online && u.id !== state.myId).map(u => ({
+        id: 'user:' + u.id, userId: u.id, name: u.name,
+        snippet: 'ออนไลน์', online: true, isUserRow: true,
+      }));
     }
-    btn.disabled = n === 0;
-    btn.style.opacity = n === 0 ? 0.5 : 1;
-}
-function openModal(mode) {
-    modalMode = mode;
-    modalSelected.clear();
-    const titles = { newChat: '✏️ เริ่ม Chat ใหม่', invite: '➕ เชิญเข้าห้อง' };
-    const hints  = {
-        newChat: 'เลือก 1 คน = DM, เลือกหลายคน = Group chat',
-        invite:  'เลือกคนที่จะเพิ่มเข้าห้องปัจจุบัน',
-    };
-    $('modalTitle').textContent = titles[mode] || 'เลือกสมาชิก';
-    $('modalHint').textContent  = hints[mode]  || '';
-    const list = $('modalList');
-    list.innerHTML = '';
-    const currentRoom = state.rooms.find(r => r.id === state.currentRoomId);
-    const exclude = new Set();
-    if (mode === 'invite' && currentRoom) {
-        for (const m of currentRoom.members) exclude.add(m.id);
+    if (!items.length) {
+      const empty = activeTab === 'rooms' ? 'ยังไม่มีห้องแชท'
+        : activeTab === 'dm' ? 'ยังไม่มี Direct Message' : 'ไม่มีคนออนไลน์';
+      $list.innerHTML = `<div class="empty">${empty}</div>`;
+      return;
     }
-    const candidates = state.onlineUsers.filter(u => !exclude.has(u.id));
-    if (candidates.length === 0) {
-        list.innerHTML = '<div class="empty"><span class="icon">👤</span>ไม่มีคนให้เลือก<br/><small style="opacity:0.6">(รอ 2-3 วิให้ sync)</small></div>';
-    } else {
-        for (const u of candidates) {
-            const el = document.createElement('label');
-            el.className = 'item';
-            el.style.cursor = 'pointer';
-            el.innerHTML = `
-                <input type="checkbox" data-id="${u.id}">
-                <div class="avatar">${escapeHtml(avatarFor(u.name))}</div>
-                <div class="item-body">
-                    <div class="item-name">${escapeHtml(u.name)}</div>
-                    <span class="item-sub"><span class="status-dot" style="background:${statusColor(u.availabilityStatus)}"></span>${escapeHtml(statusName(u.availabilityStatus))}</span>
-                </div>`;
-            el.querySelector('input').addEventListener('change', (e) => {
-                if (e.target.checked) modalSelected.add(u.id);
-                else modalSelected.delete(u.id);
-                updateConfirmLabel();
-            });
-            list.appendChild(el);
+    $list.innerHTML = '';
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const av = `<div class="avatar">${escapeHtml(it.avatar || initials(it.name))}${it.online ? '<span class="dot"></span>' : ''}</div>`;
+      const time = it.time ? `<span class="time">${escapeHtml(fmtTime(it.time))}</span>` : '';
+      const badge = it.unread ? `<div class="badge">${it.unread > 99 ? '99+' : it.unread}</div>` : '';
+      row.innerHTML = `
+        ${av}
+        <div class="meta">
+          <div class="name"><span>${escapeHtml(it.name || '—')}</span>${time}</div>
+          <div class="snippet">${escapeHtml(it.snippet || '')}</div>
+        </div>
+        ${badge}
+        <div class="actions">
+          <button data-act="walk" title="เดินไปหา">🚶</button>
+          <button data-act="call" title="โทร">📞</button>
+          <button data-act="dm"   title="ส่งข้อความ">💬</button>
+        </div>`;
+      row.addEventListener('click', e => {
+        const btn = e.target.closest('button[data-act]');
+        if (btn) {
+          e.stopPropagation();
+          const act = btn.getAttribute('data-act');
+          const userId = it.userId || it.id;
+          if (act === 'walk') broadcast({ type: 'walkTo', userId });
+          else if (act === 'call') broadcast({ type: 'callUser', userId });
+          else if (act === 'dm')   broadcast({ type: 'openDm', userId, userName: it.name });
+          return;
         }
-    }
-    updateConfirmLabel();
-    $('modal').style.display = 'flex';
-}
-function closeModal() { $('modal').style.display = 'none'; modalMode = null; modalSelected.clear(); }
+        if (it.isUserRow) broadcast({ type: 'openDm', userId: it.userId, userName: it.name });
+        else { broadcast({ type: 'selectRoom', roomId: it.id }); openRoomView(it); }
+      });
+      $list.appendChild(row);
+    });
+  }
 
-// ─── Events ────────────────────────────────────────────────
-// Close button + Escape key (when NOT typing in a text field)
-$('closeBtn').addEventListener('click',    () => send({ type: 'close' }));
-document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    const t = document.activeElement;
-    // If user is typing → first blur the input, let them press Escape again to close.
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) {
-        t.blur();
-        return;
+  function getRoom(id) { return (state.rooms || []).find(r => r.id === id); }
+
+  function renderMessages(room) {
+    const msgs = (room && room.messages) || [];
+    if (!msgs.length) {
+      $messages.innerHTML = `<div class="empty">ยังไม่มีข้อความ<br>พิมพ์เพื่อเริ่มการสนทนา ✨</div>`;
+      return;
     }
-    // If modal is open → close modal, not the window
-    if ($('modal').style.display === 'flex') { closeModal(); return; }
-    send({ type: 'close' });
-});
-$('backBtn').addEventListener('click',     () => send({ type: 'selectRoom', roomId: null }));
-$('newChatBtn').addEventListener('click',  () => openModal('newChat'));
-$('inviteBtn').addEventListener('click',   () => openModal('invite'));
-$('modalCancel').addEventListener('click', closeModal);
-$('modalCancel2').addEventListener('click', closeModal);
-$('modalConfirm').addEventListener('click', () => {
-    const ids = [...modalSelected];
-    if (ids.length === 0) return closeModal();
-    if (modalMode === 'newChat') {
-        if (ids.length === 1) {
-            // Single user → open DM
-            const u = state.onlineUsers.find(x => x.id === ids[0]);
-            send({ type: 'openDm', userId: ids[0], userName: u ? u.name : '' });
-        } else {
-            send({ type: 'createGroup', memberIds: ids });
-        }
-    } else if (modalMode === 'invite') {
-        send({ type: 'inviteToRoom', roomId: state.currentRoomId, memberIds: ids });
+    $messages.innerHTML = '';
+    msgs.forEach(m => {
+      const mine = m.userId === state.myId || m.mine === true;
+      const el = document.createElement('div');
+      el.className = 'msg' + (mine ? ' mine' : '');
+      const author = mine ? '' : `<div class="author">${escapeHtml(m.author || m.userName || '')}</div>`;
+      el.innerHTML = `${author}<div class="bubble">${escapeHtml(m.text || '')}</div><div class="time">${escapeHtml(fmtTime(m.time))}</div>`;
+      $messages.appendChild(el);
+    });
+    $messages.scrollTop = $messages.scrollHeight;
+  }
+
+  function openRoomView(roomLike) {
+    view = 'room';
+    state.currentRoomId = roomLike.id;
+    const r = getRoom(roomLike.id) || roomLike;
+    $roomName.textContent = r.name || '—';
+    renderMessages(r);
+    $viewList.classList.add('hidden-left');
+    $viewRoom.classList.remove('hidden-right');
+    setTimeout(() => $msgInput.focus(), 280);
+  }
+  function openListView() {
+    view = 'list';
+    $viewRoom.classList.add('hidden-right');
+    $viewList.classList.remove('hidden-left');
+  }
+
+  $tabs.forEach(t => t.addEventListener('click', () => {
+    $tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = t.getAttribute('data-tab');
+    renderList();
+  }));
+
+  function sendMessage() {
+    const text = $msgInput.value.trim();
+    if (!text || !state.currentRoomId) return;
+    broadcast({ type: 'sendMessage', roomId: state.currentRoomId, text });
+    $msgInput.value = '';
+  }
+  $sendBtn.addEventListener('click', sendMessage);
+  $msgInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  $msgInput.addEventListener('focus', () => broadcast({ type: 'typingFocus', focused: true }));
+  $msgInput.addEventListener('blur',  () => broadcast({ type: 'typingFocus', focused: false }));
+
+  document.getElementById('closeBtn').addEventListener('click', () => broadcast({ type: 'close' }));
+  document.getElementById('closeBtn2').addEventListener('click', () => broadcast({ type: 'close' }));
+  $backBtn.addEventListener('click', openListView);
+
+  $sizeToggle.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      const s = b.getAttribute('data-size');
+      $sizeToggle.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      state.size = s;
+      broadcast({ type: 'resize', size: s });
+    });
+  });
+
+  function openModal(mode) {
+    modal.open = true;
+    modal.mode = mode;
+    modal.selected = new Set();
+    $modalTitle.textContent = mode === 'invite' ? 'เชิญเข้าห้อง' : 'สร้างแชทใหม่';
+    renderModal();
+    $modalBack.classList.add('open');
+  }
+  function closeModal() { modal.open = false; $modalBack.classList.remove('open'); }
+  function renderModal() {
+    $modalList.innerHTML = '';
+    const users = (state.users || []).filter(u => u.id !== state.myId);
+    if (!users.length) { $modalList.innerHTML = `<div class="empty">ไม่มีผู้ใช้</div>`; }
+    else {
+      users.forEach(u => {
+        const row = document.createElement('div');
+        const checked = modal.selected.has(u.id);
+        row.className = 'check-row' + (checked ? ' checked' : '');
+        row.innerHTML = `
+          <div class="av">${escapeHtml(initials(u.name || u.id))}</div>
+          <div class="nm">${escapeHtml(u.name || u.id)}</div>
+          <div class="cb">${checked ? '✓' : ''}</div>`;
+        row.addEventListener('click', () => {
+          if (modal.selected.has(u.id)) modal.selected.delete(u.id);
+          else modal.selected.add(u.id);
+          renderModal();
+        });
+        $modalList.appendChild(row);
+      });
+    }
+    const n = modal.selected.size;
+    $modalConfirm.disabled = n === 0;
+    $modalConfirm.textContent = `ยืนยัน (${n})`;
+  }
+  document.getElementById('newChatBtn').addEventListener('click', () => openModal('new'));
+  document.getElementById('inviteBtn').addEventListener('click', () => openModal('invite'));
+  $modalCancel.addEventListener('click', closeModal);
+  $modalCloseBtn.addEventListener('click', closeModal);
+  $modalBack.addEventListener('click', e => { if (e.target === $modalBack) closeModal(); });
+  $modalConfirm.addEventListener('click', () => {
+    const ids = Array.from(modal.selected);
+    if (!ids.length) return;
+    if (modal.mode === 'invite' && state.currentRoomId) {
+      broadcast({ type: 'inviteToRoom', roomId: state.currentRoomId, memberIds: ids });
+    } else {
+      broadcast({ type: 'createGroup', memberIds: ids });
     }
     closeModal();
-});
+  });
 
-// ─── Window size toggle (S/M/L) ────────────────────────────
-const SIZES = ['S', 'M', 'L'];
-let sizeIdx = 0;                     // default to S (compact)
-$('sizeBtn').addEventListener('click', () => {
-    sizeIdx = (sizeIdx + 1) % SIZES.length;
-    $('sizeBtn').textContent = SIZES[sizeIdx];
-    send({ type: 'resize', size: SIZES[sizeIdx] });
-});
-$('sendBtn').addEventListener('click', doSend);
-$('msgInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSend(); });
-
-// ─── Prevent game from capturing keystrokes while typing ────
-// When any input inside this iframe gets focus we ask the parent (game script)
-// to disable player controls, so WASD/arrows stop moving the wok.
-// On blur we restore.
-let _typingLockActive = false;
-function lockTyping() {
-    if (_typingLockActive) return;
-    _typingLockActive = true;
-    send({ type: 'typingFocus', focused: true });
-}
-function unlockTyping() {
-    if (!_typingLockActive) return;
-    _typingLockActive = false;
-    send({ type: 'typingFocus', focused: false });
-}
-// Listen on capturing phase so we catch focus inside modals too.
-document.addEventListener('focusin', (e) => {
-    const t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) {
-        lockTyping();
+  function applyState(data) {
+    if (!data) return;
+    if (Array.isArray(data.rooms)) state.rooms = data.rooms;
+    if (Array.isArray(data.users)) state.users = data.users;
+    if ('myId' in data) state.myId = data.myId;
+    if ('size' in data && data.size) {
+      state.size = data.size;
+      $sizeToggle.querySelectorAll('button').forEach(x =>
+        x.classList.toggle('active', x.getAttribute('data-size') === state.size));
     }
-}, true);
-document.addEventListener('focusout', (e) => {
-    // Only release if the new focus target is NOT another text input.
-    const next = e.relatedTarget;
-    if (next && (next.tagName === 'INPUT' || next.tagName === 'TEXTAREA' || next.isContentEditable)) return;
-    unlockTyping();
-}, true);
-// Safety: release the lock if the iframe is about to be unloaded.
-window.addEventListener('pagehide',   unlockTyping);
-window.addEventListener('beforeunload', unlockTyping);
-window.addEventListener('blur',         unlockTyping);
+    if ('currentRoomId' in data) state.currentRoomId = data.currentRoomId;
+    renderList();
+    if (view === 'room' && state.currentRoomId) {
+      const r = getRoom(state.currentRoomId);
+      if (r) { $roomName.textContent = r.name || '—'; renderMessages(r); }
+    } else if (state.currentRoomId && view === 'list') {
+      const r = getRoom(state.currentRoomId);
+      if (r) openRoomView(r);
+    }
+  }
 
-function doSend() {
-    const text = $('msgInput').value.trim();
-    if (!text || !state.currentRoomId) return;
-    send({ type: 'sendMessage', roomId: state.currentRoomId, text });
-    $('msgInput').value = '';
-}
+  renderList();
 
-// ─── State hash (for render diff) ──────────────────────────
-// Skip re-rendering if nothing visible changed — prevents DOM thrash from the
-// 5s heartbeat push when users are idle.
-let _lastStateHash = '';
-function stateHash(s) {
-    const parts = [
-        s.currentRoomId || '',
-        s.rooms.map(r => `${r.id}|${r.name}|${r.members.length}|${r.unread||0}|${r.messages.length?r.messages[r.messages.length-1].id:''}`).join('##'),
-        s.onlineUsers.map(u => `${u.id}|${u.availabilityStatus||''}|${u.customStatus?u.customStatus.key:''}`).join('##'),
-    ];
-    return parts.join('~~');
-}
-// NOTE: `send({type:'ready'})` happens inside WA.onInit() above once the API
-// is usable. No raw window.postMessage listener any more — WA.event.on handles it.
+  if (window.WA && typeof WA.onInit === 'function') {
+    WA.onInit().then(() => {
+      try {
+        WA.event.on('mimo-chat-state').subscribe(ev => {
+          applyState(ev && ev.data ? ev.data : ev);
+        });
+      } catch (e) { console.warn('subscribe failed', e); }
+      broadcast({ type: 'ready' });
+    }).catch(err => console.warn('WA.onInit failed', err));
+  }
+})();
 </script>
 </body>
 </html>
