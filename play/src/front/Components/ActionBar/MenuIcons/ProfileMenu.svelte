@@ -66,8 +66,8 @@
 
     const statusToShow: Array<RequestedStatus | AvailabilityStatus.ONLINE> = [
         AvailabilityStatus.ONLINE,
+        AvailabilityStatus.AWAY,
         AvailabilityStatus.BUSY,
-        AvailabilityStatus.BACK_IN_A_MOMENT,
         AvailabilityStatus.DO_NOT_DISTURB,
     ];
 

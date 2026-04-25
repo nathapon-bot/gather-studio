@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { localStreamStore } from "../../../Stores/MediaStore";
+    import { onMount } from "svelte";
+    import { localStreamStore, prewarmBackgroundTransformer } from "../../../Stores/MediaStore";
     import { LL } from "../../../../i18n/i18n-svelte";
     import { backgroundConfigStore, backgroundPresets } from "../../../Stores/BackgroundTransformStore";
     import type { BackgroundMode } from "../../../WebRtc/BackgroundProcessor/createBackgroundTransformer";
@@ -9,6 +10,12 @@
     import BackgroundPresetButton from "./BackgroundPresetButton.svelte";
     import SelectionCheckOverlay from "./SelectionCheckOverlay.svelte";
     import { IconCamera, IconCheck, IconCancel } from "@wa-icons";
+
+    // Pre-warm MediaPipe as soon as this panel mounts (user opened Background tab)
+    // so that clicking Blur/Image/Video applies instantly instead of freezing 2–3s.
+    onMount(() => {
+        prewarmBackgroundTransformer().catch(() => {});
+    });
 
     const blurOptions = [
         { labelKey: "blurSmall" as const, amount: 10, blurTailwind: "blur-[2px]" },

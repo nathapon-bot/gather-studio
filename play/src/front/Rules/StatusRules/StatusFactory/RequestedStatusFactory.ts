@@ -10,6 +10,8 @@ export const requestedStatusFactory = {
                 return AvailabilityStatus.DO_NOT_DISTURB;
             case AvailabilityStatus.BACK_IN_A_MOMENT:
                 return AvailabilityStatus.BACK_IN_A_MOMENT;
+            case AvailabilityStatus.AWAY:
+                return AvailabilityStatus.AWAY;
             default:
                 return null;
         }

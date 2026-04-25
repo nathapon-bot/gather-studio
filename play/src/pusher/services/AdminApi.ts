@@ -1261,7 +1261,7 @@ class AdminApi implements AdminInterface {
     async getIceServers(userId: number, userIdentifier: string, roomUrl: string): Promise<IceServer[]> {
         if (this.capabilities["api/ice-servers"] === undefined) {
             // ice-servers is not implemented in admin. Fallback to local env vars
-            return iceServersService.generateIceServers(userId.toString());
+            return await iceServersService.generateIceServers(userId.toString());
         }
 
         const response = await axios.get(`${ADMIN_URL}/api/ice-servers`, {

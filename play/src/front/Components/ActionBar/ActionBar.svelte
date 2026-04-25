@@ -11,13 +11,14 @@
         proximityMeetingStore,
     } from "../../Stores/MyMediaStore";
     import type { RightMenuItem } from "../../Stores/MenuStore";
-    import { mediaSettingsOpenStore, rightActionBarMenuItems } from "../../Stores/MenuStore";
+    import { mediaSettingsOpenStore, mediaSettingsInitialTabStore, rightActionBarMenuItems } from "../../Stores/MenuStore";
     import { IconChevronUp } from "../Icons";
     import { hideActionBarStoreBecauseOfChatBar } from "../../Chat/ChatSidebarWidthStore";
     import { screenSharingAvailableStore } from "../../Stores/ScreenSharingStore";
     import { isInRemoteConversation } from "../../Stores/StreamableCollectionStore";
     import MediaSettingsList from "./MediaSettingsList/MediaSettingsList.svelte";
     import CameraMenuItem from "./MenuIcons/CameraMenuItem.svelte";
+    import BackgroundMenuItem from "./MenuIcons/BackgroundMenuItem.svelte";
     import MicrophoneMenuItem from "./MenuIcons/MicrophoneMenuItem.svelte";
     import ScreenSharingMenuItem from "./MenuIcons/ScreenSharingMenuItem.svelte";
     import ChatMenuItem from "./MenuIcons/ChatMenuItem.svelte";
@@ -87,8 +88,12 @@
                                 <!-- svelte-ignore a11y-no-static-element-interactions -->
                                 <div
                                     class="absolute bottom-1 start-0 end-0 m-auto hover:bg-white/10 h-5 w-5 flex items-center justify-center rounded-sm mobile:rotate-180"
-                                    on:click|stopPropagation|preventDefault={() =>
-                                        mediaSettingsOpenStore.set(!$mediaSettingsOpenStore)}
+                                    on:click|stopPropagation|preventDefault={() => {
+                                        // The chevron always opens the Settings (devices) tab.
+                                        // BackgroundMenuItem handles opening the Background tab directly.
+                                        mediaSettingsInitialTabStore.set("settings");
+                                        mediaSettingsOpenStore.set(!$mediaSettingsOpenStore);
+                                    }}
                                 >
                                     <IconChevronUp
                                         stroke={2}
@@ -107,6 +112,12 @@
                             <CameraMenuItem />
                         {/if}
                         <!-- NAV : CAMERA END -->
+
+                        <!-- NAV : BACKGROUND EFFECTS — dedicated button, opens panel on Background tab -->
+                        {#if !$inExternalServiceStore && $myCameraStore}
+                            <BackgroundMenuItem />
+                        {/if}
+                        <!-- NAV : BACKGROUND EFFECTS END -->
 
                         <!-- NAV : SCREENSHARING START -->
                         {#if $screenSharingAvailableStore}

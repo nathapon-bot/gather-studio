@@ -41,6 +41,7 @@ export const getStatusInformation = (
 ): Array<StatusInformationInterface> => {
     const labelStatusMap: Map<RequestedStatus | AvailabilityStatus.ONLINE, LocalizedString> = new Map([
         [AvailabilityStatus.BACK_IN_A_MOMENT, get(LL).actionbar.status.BACK_IN_A_MOMENT()],
+        [AvailabilityStatus.AWAY, get(LL).actionbar.status.AWAY()],
         [AvailabilityStatus.BUSY, get(LL).actionbar.status.BUSY()],
         [AvailabilityStatus.DO_NOT_DISTURB, get(LL).actionbar.status.DO_NOT_DISTURB()],
         [AvailabilityStatus.ONLINE, get(LL).actionbar.status.ONLINE()],

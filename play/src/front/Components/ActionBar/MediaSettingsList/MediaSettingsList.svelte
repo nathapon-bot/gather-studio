@@ -2,14 +2,17 @@
     import { fly } from "svelte/transition";
     import { clickOutside } from "svelte-outside";
     import { createEventDispatcher, onDestroy } from "svelte";
+    import { get } from "svelte/store";
     import { inBackgroundSettingsStore } from "../../../Stores/MediaStore";
+    import { mediaSettingsInitialTabStore } from "../../../Stores/MenuStore";
     import MediaSettingsListHeader from "./MediaSettingsListHeader.svelte";
     import MediaSettingsPanel from "./MediaSettingsPanel.svelte";
     import BackgroundSettingsPanel from "./BackgroundSettingsPanel.svelte";
 
     export let mediaSettingsDisplayed = false;
 
-    let mode: "settings" | "background" = "settings";
+    // Respect the caller's preferred tab (e.g. the Background button opens on "background").
+    let mode: "settings" | "background" = get(mediaSettingsInitialTabStore);
 
     $: inBackgroundSettingsStore.set(mode === "background");
 

@@ -546,6 +546,29 @@ let lastBackgroundConfig: BackgroundConfig | undefined = undefined;
 let currentTransformAbortController: AbortController | null = null;
 
 /**
+ * Pre-warm the background transformer (MediaPipe model + WASM) so the
+ * first background change doesn't cause a 2–3s UI freeze. Safe to call
+ * multiple times — creates the instance at most once.
+ */
+let prewarmPromise: Promise<void> | undefined;
+export function prewarmBackgroundTransformer(): Promise<void> {
+    if (prewarmPromise) return prewarmPromise;
+    prewarmPromise = (async () => {
+        try {
+            if (!backgroundTransformer) {
+                backgroundTransformer = createBackgroundTransformer(get(backgroundConfigStore));
+            }
+            await backgroundTransformer.waitForInitialization();
+        } catch (err) {
+            // Silent — if pre-warm fails we fall back to lazy init.
+            console.info("[MediaStore] Background transformer pre-warm skipped:", err);
+            prewarmPromise = undefined;
+        }
+    })();
+    return prewarmPromise;
+}
+
+/**
  * Update background processor configuration without recreating the transformer
  */
 export function updateBackgroundProcessor(config: {

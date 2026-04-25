@@ -114,7 +114,7 @@
         on:introend={reposition}
         on:outroend={reposition}
         style="width: {sideBarWidth}px; max-width: {sideBarWidth}px;"
-        class=" chatWindow !min-w-[150px] max-sm:!min-w-[150px] bg-contrast/50 backdrop-blur-md p-0 screen-blocker"
+        class=" chatWindow floatingPopup !min-w-[150px] max-sm:!min-w-[150px] bg-contrast/70 backdrop-blur-md p-0 screen-blocker"
     >
         {#if $hideActionBarStoreBecauseOfChatBar && isInSpecificDiscussion}
             <div class="close-window absolute end-2 top-3 rounded-sm p-1 bg-contrast/80 z-50">
@@ -146,6 +146,35 @@
     @include media-breakpoint-up(sm) {
         .chatWindow {
             width: 100% !important;
+        }
+    }
+
+    /* ── Floating popup treatment ─────────────────────────────
+       Makes the chat feel like a modern floating panel instead
+       of a full-height rigid sidebar. Desktop only — mobile
+       reverts to full-width via the media query above. */
+    :global(#chat.floatingPopup) {
+        top: 70px;
+        bottom: 70px;
+        height: auto !important;
+        margin-inline-start: 12px;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+    }
+    :global(#chat.floatingPopup #resize-bar) {
+        right: 2px !important;
+    }
+    /* On narrow screens, don't float — revert to attached sidebar */
+    @media (max-width: 640px) {
+        :global(#chat.floatingPopup) {
+            top: 0 !important;
+            bottom: 0 !important;
+            margin-inline-start: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
         }
     }
 </style>

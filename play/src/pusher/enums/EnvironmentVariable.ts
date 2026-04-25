@@ -126,6 +126,9 @@ export const TURN_USER: string | undefined = env.TURN_USER;
 export const TURN_PASSWORD: string | undefined = env.TURN_PASSWORD;
 export const TURN_STATIC_AUTH_SECRET: string | undefined = env.TURN_STATIC_AUTH_SECRET;
 export const TURN_CREDENTIALS_RENEWAL_TIME: number = env.TURN_CREDENTIALS_RENEWAL_TIME;
+// Cloudflare Calls TURN (auto-rotating ephemeral credentials)
+export const CLOUDFLARE_TURN_KEY_ID: string | undefined = process.env.CLOUDFLARE_TURN_KEY_ID;
+export const CLOUDFLARE_TURN_API_TOKEN: string | undefined = process.env.CLOUDFLARE_TURN_API_TOKEN;
 
 // RoomAPI
 export const ROOM_API_PORT = env.ROOM_API_PORT;

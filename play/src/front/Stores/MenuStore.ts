@@ -31,6 +31,9 @@ export const menuIconVisiblilityStore = writable(false);
 export const menuVisiblilityStore = writable(false);
 export const userIsConnected = writable(false);
 export const mediaSettingsOpenStore = writable(false);
+// Which tab to show when the media settings panel opens — set by the caller
+// before flipping `mediaSettingsOpenStore` to `true`.
+export const mediaSettingsInitialTabStore = writable<"settings" | "background">("settings");
 
 export const profileAvailable = derived(userIsConnected, ($userIsConnected) => {
     return $userIsConnected && OPID_PROFILE_SCREEN_PROVIDER !== undefined;

@@ -469,7 +469,7 @@ class LocalAdmin implements AdminInterface {
     }
 
     getIceServers(userId: number, userIdentifier: string, roomUrl: string): Promise<IceServer[]> {
-        return Promise.resolve(iceServersService.generateIceServers(userId.toString()));
+        return iceServersService.generateIceServers(userId.toString());
     }
 }
 

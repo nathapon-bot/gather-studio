@@ -21,12 +21,14 @@ const basicStatus: Array<AvailabilityStatus> = [
 export type RequestedStatus =
     | AvailabilityStatus.DO_NOT_DISTURB
     | AvailabilityStatus.BACK_IN_A_MOMENT
+    | AvailabilityStatus.AWAY
     | AvailabilityStatus.BUSY;
 
 export const setableStatus: Array<AvailabilityStatus> = [
     AvailabilityStatus.BUSY,
     AvailabilityStatus.DO_NOT_DISTURB,
     AvailabilityStatus.BACK_IN_A_MOMENT,
+    AvailabilityStatus.AWAY,
 ];
 
 const invalidTransition: Map<AvailabilityStatus, Array<AvailabilityStatus>> = new Map([
