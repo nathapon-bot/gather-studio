@@ -1079,7 +1079,6 @@ async function closeChatUI() {
     const handle    = chatWebsite;
     chatWebsite     = null;             // clear state FIRST so no callers re-enter
     chatReady       = false;
-    _chatIframeRef  = null;
     _lastPushedState = '';               // fresh state on next open
     if (_pushStateTimer)     { clearTimeout(_pushStateTimer);     _pushStateTimer = null; }
     if (_chatPeriodicTimer)  { clearInterval(_chatPeriodicTimer); _chatPeriodicTimer = null; }
