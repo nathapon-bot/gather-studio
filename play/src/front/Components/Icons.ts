@@ -72,6 +72,7 @@ export { default as IconUserCircle } from "~icons/tabler/user-circle";
 export { default as IconShare3 } from "~icons/tabler/share-3";
 export { default as IconStar } from "~icons/tabler/star";
 export { default as IconStarFilled } from "~icons/tabler/star-filled";
+export { default as IconSparkles } from "~icons/tabler/sparkles";
 export { default as IconPause } from "~icons/tabler/player-pause";
 export { default as IconPauseFilled } from "~icons/tabler/player-pause-filled";
 export { default as IconPlay } from "~icons/tabler/player-play";
