@@ -70,8 +70,8 @@
     }
 </script>
 
-<!-- Room list part -->
-{#if $roomListActivated || $userIsAdminStore}
+<!-- Room list part — hidden for single-room deployments (always showed "NO ROOM FOUND") -->
+{#if false}
     <ActionBarButton
         on:click={showRoomList}
         on:keydown={showRoomList}
