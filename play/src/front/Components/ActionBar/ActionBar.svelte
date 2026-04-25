@@ -50,6 +50,12 @@
 {#if !$hideActionBarStoreBecauseOfChatBar}
     <ResponsiveActionBar bind:rightDiv bind:actionBarWidth>
         <div slot="left" class="justify-start flex-none">
+            <!-- DISABLED in Phase 2 redesign: top-left chat-bubble + people
+                 icons opened the WA built-in chat sidebar (which is itself
+                 disabled in ChatSidebar.svelte). Hiding the icons too so
+                 they don't trigger the empty-but-visible CloseChatMenuItem
+                 (the floating X). Re-enable by uncommenting the block below. -->
+            <!--
             <div class="flex relative transition-all duration-150 z-[2]" data-testid="chat-action">
                 {#if !$chatVisibilityStore}
                     <ChatMenuItem chatEnabledInAdmin={showChatButton} last={isSmallScreen ? true : undefined} />
@@ -60,7 +66,7 @@
                     <CloseChatMenuItem />
                 {/if}
             </div>
-        </div>
+            -->
 
         <div
             slot="center"
