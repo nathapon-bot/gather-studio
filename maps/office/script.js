@@ -1024,9 +1024,9 @@ let _chatCurrentSize   = 'S';           // start compact; user can tap M/L to gr
 // ours to the RIGHT to avoid overlap.
 // Smaller defaults — users said the panel was eating too much screen
 const CHAT_SIZES = {
-    S: { width: '22%', height: '55%' },
-    M: { width: '30%', height: '72%' },
-    L: { width: '40%', height: '88%' },
+    S: { width: '15%', height: '50%' },
+    M: { width: '22%', height: '65%' },
+    L: { width: '32%', height: '80%' },
 };
 const CHAT_POSITION = { vertical: 'middle', horizontal: 'right' };
 const CHAT_MARGIN   = { top: '70px', bottom: '70px', right: '12px' };
