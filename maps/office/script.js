@@ -959,6 +959,7 @@ function buildChatState() {
 let _pushStateTimer = null;
 let _lastPushedState = '';
 function pushStateToChat() {
+    console.log('[chat-debug] pushStateToChat called, chatWebsite=', !!chatWebsite, 'chatReady=', chatReady);
     if (!chatWebsite || !chatReady) return;
     if (_pushStateTimer) return;
     _pushStateTimer = setTimeout(() => {
@@ -1407,6 +1408,7 @@ WA.onInit().then(async () => {
     // originating from our own iframes (same playerId).
     try {
         WA.event.on('mimo-chat').subscribe((ev) => {
+            console.log('[chat-debug] mimo-chat event received:', ev?.data?.type, 'senderId:', ev?.senderId, 'myId:', _myPlayerId);
             // Lenient filter: drop only when both IDs are known AND differ.
             // Strict equality blocked all events when _myPlayerId was undefined
             // (race with WA.player.playerId not being populated yet) — meaning
