@@ -969,6 +969,14 @@ function pushStateToChat() {
             const serialised = JSON.stringify(state);
             if (serialised === _lastPushedState) return;     // no change — skip
             _lastPushedState = serialised;
+            // DEBUG: log what we're pushing so we can diagnose Online tab being empty.
+            // Remove once the Lovable redesign is verified to display users.
+            console.log('[chat-debug] push state →', {
+                myId: state.myId,
+                users_count: (state.users || []).length,
+                users_sample: (state.users || []).slice(0, 3),
+                rooms_count: (state.rooms || []).length,
+            });
             // postMessage uses StructuredClone, which rejects Iterator Helper
             // objects that JSON tolerates. Round-trip through JSON to strip
             // any non-cloneable fields that snuck in via Player/state spreads.
