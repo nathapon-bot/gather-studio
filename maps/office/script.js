@@ -936,7 +936,9 @@ function buildChatState() {
         // .filter()/.map() chained on it stay as Iterator Helper too, which
         // is NOT an Array (no .length, JSON.stringify ignores it). Force
         // Array.from up front so all downstream array logic works.
-        onlineUsers = Array.from(WA.players.list())
+        const rawPlayers = Array.from(WA.players.list());
+        console.log('[chat-debug] WA.players.list raw:', rawPlayers.length, rawPlayers.map(p => ({id: pid(p), name: p.name, myId})));
+        onlineUsers = rawPlayers
             .filter(p => pid(p) !== myId)
             .map(p => ({
                 id:                 pid(p),
