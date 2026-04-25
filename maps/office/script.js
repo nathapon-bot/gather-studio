@@ -932,7 +932,11 @@ function roomToWire(r) {
 function buildChatState() {
     let onlineUsers = [];
     try {
-        onlineUsers = WA.players.list()
+        // WA.players.list() returns an Iterator Helper in modern Chrome —
+        // .filter()/.map() chained on it stay as Iterator Helper too, which
+        // is NOT an Array (no .length, JSON.stringify ignores it). Force
+        // Array.from up front so all downstream array logic works.
+        onlineUsers = Array.from(WA.players.list())
             .filter(p => pid(p) !== myId)
             .map(p => ({
                 id:                 pid(p),
