@@ -611,6 +611,10 @@ async function sitDown(desk) {
         if (sitActionMsg) { sitActionMsg.remove(); sitActionMsg = undefined; }
         hideGoHomeButton();
         clearBookingMenu();
+        hideDecorateButton();
+        // If the palette was open when the user chose to sit, close it —
+        // we don't want decorating to remain available while sitting.
+        if (_decorOpenForDesk) closeDecorateUI();
 
         // Real sit animation: sprite −4 px + "{woka}-down-sit" anim
         await WA.player.setSitting(true);
