@@ -945,6 +945,9 @@ function buildChatState() {
         myId, myName: myPlayerName,
         rooms:         [...chatRooms.values()].map(roomToWire),
         onlineUsers,
+        // Mirror as `users` with explicit `online: true` for the redesigned
+        // chat.html (Lovable), which expects state.users[].online.
+        users:         onlineUsers.map(u => ({ ...u, online: true })),
         currentRoomId: currentChatRoomId,
     };
 }
@@ -1394,11 +1397,15 @@ WA.onInit().then(async () => {
     // originating from our own iframes (same playerId).
     try {
         WA.event.on('mimo-chat').subscribe((ev) => {
-            if (ev.senderId !== _myPlayerId) return;
+            // Lenient filter: drop only when both IDs are known AND differ.
+            // Strict equality blocked all events when _myPlayerId was undefined
+            // (race with WA.player.playerId not being populated yet) — meaning
+            // the in-dialog X close button silently failed.
+            if (_myPlayerId != null && ev.senderId != null && ev.senderId !== _myPlayerId) return;
             _handleChatEvent(ev.data);
         });
         WA.event.on('mimo-np').subscribe((ev) => {
-            if (ev.senderId !== _myPlayerId) return;
+            if (_myPlayerId != null && ev.senderId != null && ev.senderId !== _myPlayerId) return;
             _handleNameplatesEvent(ev.data);
         });
     } catch(e) { console.warn('[init] event subscribe failed', e); }
