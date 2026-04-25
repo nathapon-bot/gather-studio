@@ -964,10 +964,12 @@ function pushStateToChat() {
     if (_pushStateTimer) return;
     _pushStateTimer = setTimeout(() => {
         _pushStateTimer = null;
+        console.log('[chat-debug] inner setTimeout, chatWebsite=', !!chatWebsite, 'chatReady=', chatReady);
         if (!chatWebsite || !chatReady) return;
         try {
             const state = buildChatState();
             const serialised = JSON.stringify(state);
+            console.log('[chat-debug] state built, users_count=', (state.users || []).length, 'serialised_len=', serialised.length, 'same_as_last=', serialised === _lastPushedState);
             if (serialised === _lastPushedState) return;     // no change — skip
             _lastPushedState = serialised;
             // DEBUG: log what we're pushing so we can diagnose Online tab being empty.
