@@ -10763,17 +10763,11 @@
                     "y": 768.3333333333333
                 },
                 {
-                    "class": "",
+                    "class": "area",
                     "height": 64,
                     "id": 145,
                     "name": "stairs_down",
-                    "properties": [
-                        {
-                            "name": "exitUrl",
-                            "type": "string",
-                            "value": "./map.json#from-floor2"
-                        }
-                    ],
+                    "properties": [],
                     "rotation": 0,
                     "visible": true,
                     "width": 64,
@@ -11404,6 +11398,8 @@
                 0,
                 0,
                 0,
+                2956,
+                2956,
                 0,
                 0,
                 0,
@@ -11433,10 +11429,8 @@
                 0,
                 0,
                 0,
-                0,
-                0,
-                0,
-                0,
+                2956,
+                2956,
                 0,
                 0,
                 0,

@@ -11677,17 +11677,11 @@
                     "y": 1104
                 },
                 {
-                    "class": "",
+                    "class": "area",
                     "height": 64,
                     "id": 144,
                     "name": "stairs_up",
-                    "properties": [
-                        {
-                            "name": "exitUrl",
-                            "type": "string",
-                            "value": "./map_floor2.json#from-floor1"
-                        }
-                    ],
+                    "properties": [],
                     "rotation": 0,
                     "visible": true,
                     "width": 64,
@@ -12300,6 +12294,8 @@
                 0,
                 0,
                 0,
+                2956,
+                2956,
                 0,
                 0,
                 0,
@@ -12329,10 +12325,8 @@
                 0,
                 0,
                 0,
-                0,
-                0,
-                0,
-                0,
+                2956,
+                2956,
                 0,
                 0,
                 0,
