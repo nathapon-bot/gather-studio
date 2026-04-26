@@ -2,6 +2,7 @@
     import { clickOutside } from "svelte-outside";
     import { getContext, setContext } from "svelte";
     import { derived, get, type Readable } from "svelte/store";
+    import { fly } from "svelte/transition";
     import VirtualList from "@sveltejs/svelte-virtual-list";
     import { openedMenuStore } from "../../../Stores/MenuStore";
     import { chatVisibilityStore } from "../../../Stores/ChatStore";
@@ -196,6 +197,7 @@
                 data-testid="participant-sub-menu"
                 use:floatingUiContent
                 use:clickOutside={closeParticipantMenu}
+                transition:fly={{ y: -10, duration: 180 }}
             >
                 <div use:arrowAction />
                 <div class="p-1 m-0 max-h-[calc(100vh-96px)] overflow-y-auto flex flex-col items-stretch">

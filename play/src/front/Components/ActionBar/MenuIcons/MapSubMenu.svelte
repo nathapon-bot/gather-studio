@@ -1,6 +1,7 @@
 <script lang="ts">
     import { clickOutside } from "svelte-outside";
     import { getContext, setContext } from "svelte";
+    import { fly } from "svelte/transition";
     import { mapMenuVisibleStore, openedMenuStore } from "../../../Stores/MenuStore";
     import { LL } from "../../../../i18n/i18n-svelte";
     import { createFloatingUiActions } from "../../../Utils/svelte-floatingui";
@@ -75,6 +76,7 @@
                 data-testid="map-sub-menu"
                 use:floatingUiContent
                 use:clickOutside={closeMapMenu}
+                transition:fly={{ y: -10, duration: 180 }}
             >
                 <div use:arrowAction />
                 <div class="p-1 m-0">

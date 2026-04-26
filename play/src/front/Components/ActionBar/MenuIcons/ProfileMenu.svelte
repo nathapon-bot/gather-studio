@@ -1,6 +1,7 @@
 <script lang="ts">
     import * as Sentry from "@sentry/svelte";
     import { clickOutside } from "svelte-outside";
+    import { fly } from "svelte/transition";
     import { AvailabilityStatus } from "@workadventure/messages";
     import { setContext } from "svelte";
     import type { SvelteComponentTyped } from "svelte";
@@ -283,6 +284,7 @@
             use:clickOutside={() => {
                 openedMenuStore.close("profileMenu");
             }}
+            transition:fly={{ y: -10, duration: 180 }}
         >
             <div use:arrowAction />
             <div class="p-0 m-0 list-none overflow-y-auto max-h-[calc(100vh-96px)]">
