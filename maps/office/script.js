@@ -996,7 +996,15 @@ const CHAT_POSITION = { vertical: 'top', horizontal: 'left' };
 let _chatMarginLeft = 1300;
 let _chatMarginTop  = 100;
 function chatMarginNow() {
-    return { top: `${Math.round(_chatMarginTop)}px`, left: `${Math.round(_chatMarginLeft)}px` };
+    // Clamp left so the panel never opens off-screen on narrow viewports.
+    // CHAT_SIZES.S width is 15vw; leave 20px breathing room from right edge.
+    const panelW  = window.innerWidth  * 0.15;
+    const panelH  = window.innerHeight * 0.50;
+    const maxLeft = Math.max(0, window.innerWidth  - panelW - 20);
+    const maxTop  = Math.max(0, window.innerHeight - panelH - 20);
+    const left = Math.min(_chatMarginLeft, maxLeft);
+    const top  = Math.min(_chatMarginTop,  maxTop);
+    return { top: `${Math.round(top)}px`, left: `${Math.round(left)}px` };
 }
 function applyChatPosition() {
     if (!chatWebsite) return;
