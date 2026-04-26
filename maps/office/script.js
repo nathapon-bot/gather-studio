@@ -1408,8 +1408,8 @@ WA.onInit().then(async () => {
             });
         } catch(e) { /* area not present on this floor — ignore */ }
     }
-    wireStairs('stairs_up',   './map_floor2.json#from-floor1', '🪜 กด SPACE ขึ้นชั้น 2');
-    wireStairs('stairs_down', './map.json#from-floor2',         '🪜 กด SPACE ลงชั้น 1');
+    wireStairs('stairs_up',   './map_floor2.json#from-floor1', '🛗 กด SPACE เรียกลิฟต์ขึ้นชั้น 2');
+    wireStairs('stairs_down', './map.json#from-floor2',         '🛗 กด SPACE เรียกลิฟต์ลงชั้น 1');
 
     // Restore persisted booking
     try {
