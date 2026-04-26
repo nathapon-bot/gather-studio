@@ -36,10 +36,11 @@
     import XIcon from "../../Icons/XIcon.svelte";
     import MenuBurgerIcon from "../../Icons/MenuBurgerIcon.svelte";
     import { connectionManager } from "../../../Connection/ConnectionManager";
-    import { getColorHexOfStatus, getStatusInformation, getStatusLabel } from "../../../Utils/AvailabilityStatus";
+    import { getColorHexOfStatus, getStatusLabel } from "../../../Utils/AvailabilityStatus";
     import ExternalComponents from "../../ExternalModules/ExternalComponents.svelte";
-    import AvailabilityStatusList from "../AvailabilityStatus/AvailabilityStatusList.svelte";
+    import { resetAllStatusStoreExcept } from "../../../Rules/StatusRules/statusChangerFunctions";
     import type { RequestedStatus } from "../../../Rules/StatusRules/statusRules";
+    import { IconCheck } from "@wa-icons";
     import { loginSceneVisibleStore } from "../../../Stores/LoginSceneStore";
     import { LoginScene, LoginSceneName } from "../../../Phaser/Login/LoginScene";
     import { selectCharacterSceneVisibleStore } from "../../../Stores/SelectCharacterStore";
@@ -64,12 +65,54 @@
 
     let userName = gameManager.getPlayerName() || "";
 
-    const statusToShow: Array<RequestedStatus | AvailabilityStatus.ONLINE> = [
-        AvailabilityStatus.ONLINE,
-        AvailabilityStatus.AWAY,
-        AvailabilityStatus.BUSY,
-        AvailabilityStatus.DO_NOT_DISTURB,
+    type StatusItem = {
+        emoji: string;
+        label: string;
+        base: AvailabilityStatus.ONLINE | AvailabilityStatus.AWAY | AvailabilityStatus.BUSY | AvailabilityStatus.DO_NOT_DISTURB;
+        customKey: string | null;
+    };
+
+    const customStatusList: StatusItem[] = [
+        { emoji: "🟢", label: "พร้อมทำงาน",  base: AvailabilityStatus.ONLINE,         customKey: null },
+        { emoji: "🟡", label: "Away",         base: AvailabilityStatus.AWAY,           customKey: null },
+        { emoji: "🍱", label: "พักเที่ยง",      base: AvailabilityStatus.AWAY,           customKey: "lunch" },
+        { emoji: "🟡", label: "Busy",         base: AvailabilityStatus.BUSY,           customKey: null },
+        { emoji: "🎙️", label: "ประชุมอยู่",    base: AvailabilityStatus.DO_NOT_DISTURB, customKey: "meeting" },
+        { emoji: "💻", label: "Focus Mode",   base: AvailabilityStatus.DO_NOT_DISTURB, customKey: "focus" },
     ];
+
+    function pickStatus(item: StatusItem) {
+        const requested = item.base === AvailabilityStatus.ONLINE ? null : (item.base as RequestedStatus);
+        resetAllStatusStoreExcept(requested);
+
+        // Bridge to script.js: write customStatus so other players see the
+        // emoji+label nameplate ("🍱 พักเที่ยง"). null clears it.
+        try {
+            const scene = gameManager.getCurrentGameScene();
+            const manager = scene?.getPlayerVariablesManager?.();
+            if (manager) {
+                if (item.customKey) {
+                    manager.setVariableFromApp(
+                        "customStatus",
+                        {
+                            key: item.customKey,
+                            emoji: item.emoji,
+                            label: item.label,
+                            base: AvailabilityStatus[item.base],
+                            ts: Date.now(),
+                        },
+                        { public: true, persist: true }
+                    );
+                } else {
+                    manager.setVariableFromApp("customStatus", null, { public: true, persist: true });
+                }
+            }
+        } catch (e) {
+            // scene/manager not ready (e.g. login screen) — safe to skip
+        }
+
+        openedMenuStore.close("profileMenu");
+    }
 
     function showWokaNameMenuItem() {
         return connectionManager.currentRoom?.opidWokaNamePolicy !== "force_opid";
@@ -244,7 +287,23 @@
             <div use:arrowAction />
             <div class="p-0 m-0 list-none overflow-y-auto max-h-[calc(100vh-96px)]">
                 <ExternalComponents zone="menuTop" />
-                <AvailabilityStatusList statusInformation={getStatusInformation(statusToShow)} />
+                <ExternalComponents zone="availabilityStatus" />
+                <HeaderMenuItem label={$LL.actionbar.listStatusTitle.enable()} />
+                {#each customStatusList as item (item.label)}
+                    <button
+                        class="status-button group flex px-2 py-1 gap-2 items-center transition-all cursor-pointer text-sm text-neutral-100 w-full pointer-events-auto text-start rounded active:outline-none focus:outline-none"
+                        class:disabled={$availabilityStatusStore === item.base && item.customKey === null}
+                        on:click|stopPropagation={() => pickStatus(item)}
+                    >
+                        <span class="w-4 text-center text-base leading-none">{item.emoji}</span>
+                        <span class="grow text-start leading-4">{item.label}</span>
+                        <IconCheck
+                            class="text-white {$availabilityStatusStore !== item.base || item.customKey !== null
+                                ? 'opacity-0 '
+                                : ''}group-hover:opacity-100 transition-all"
+                        />
+                    </button>
+                {/each}
                 <HeaderMenuItem label={$LL.menu.sub.profile()} />
                 {#if showWokaNameMenuItem()}
                     <ActionBarButton

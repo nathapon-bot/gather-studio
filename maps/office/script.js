@@ -629,50 +629,9 @@ function trackPlayer(player) {
     } catch(e) { console.warn('[track] trackPlayer err', e); }
 }
 
-// ── CUSTOM STATUS PRESETS ─────────────────────────────────
-// Each preset sets a base AvailabilityStatus (so camera/mic/call logic still
-// respects it) AND publishes a display label/emoji for other players to see.
-const STATUS_PRESETS = [
-    { key: 'online',   emoji: '🟢', label: 'พร้อมทำงาน',       base: 'ONLINE'          },
-    { key: 'lunch',    emoji: '🍱', label: 'พักเที่ยง',          base: 'AWAY'            },
-    { key: 'meeting',  emoji: '🎙️', label: 'ประชุมอยู่',         base: 'DO_NOT_DISTURB'  },
-    { key: 'focus',    emoji: '💻', label: 'Focus Mode',        base: 'DO_NOT_DISTURB'  },
-];
-
-const statusMenuCmds = new Map();   // key → WA menu cmd
-let myCustomStatus    = null;        // { key, emoji, label, base, ts }
-
-async function applyCustomStatus(preset) {
-    try {
-        try { WA.player.setStatus(preset.base); } catch(e) {}
-        myCustomStatus = {
-            key: preset.key, emoji: preset.emoji, label: preset.label,
-            base: preset.base, ts: Date.now(),
-        };
-        // Publish so other players see the custom label next to our name
-        await WA.player.state.saveVariable('customStatus', myCustomStatus, {
-            public: true, persist: true,
-        });
-        WA.chat.sendChatMessage(`${preset.emoji} เปลี่ยนสถานะ: ${preset.label}`, 'ระบบ');
-        updateStatusMenu();        // refresh own menu (show checkmark)
-    } catch(e) { console.warn('[status] apply failed:', e); }
-}
-
-function updateStatusMenu() {
-    // Remove previous entries, re-add with live checkmarks
-    for (const [, cmd] of statusMenuCmds) { try { cmd.remove(); } catch(e){} }
-    statusMenuCmds.clear();
-    for (const preset of STATUS_PRESETS) {
-        const isActive = myCustomStatus && myCustomStatus.key === preset.key;
-        const label    = `${preset.emoji} ${preset.label}${isActive ? ' ✓' : ''}`;
-        try {
-            const cmd = WA.ui.registerMenuCommand(label, {
-                callback: () => applyCustomStatus(preset)
-            });
-            statusMenuCmds.set(preset.key, cmd);
-        } catch(e){}
-    }
-}
+// Custom status presets are owned by the profile-menu dropdown in play
+// (ProfileMenu.svelte). It writes player.state.customStatus directly; this
+// file only consumes the value for nameplate broadcast and chat sync.
 
 // ── CALL / WAVE SYSTEM — helpers ──────────────────────────
 function getPlayerStatus(player) {
@@ -1423,13 +1382,6 @@ WA.onInit().then(async () => {
     // Persistent menu commands
     WA.ui.registerMenuCommand('📋 ดูสถานะโต๊ะทั้งหมด', { callback: () => showDeskDirectory() });
     updateProximityMenu();   // "📹 เปิด Proximity Chat" toggle
-
-    // Restore last saved custom status (persists across sessions)
-    try {
-        const saved = WA.player.state.customStatus;
-        if (saved && saved.key) myCustomStatus = saved;
-    } catch(e) {}
-    updateStatusMenu();
 
     // Track other players for desk nameplates AND call/wave system
     // configureTracking() MUST be called before any WA.players.* API
