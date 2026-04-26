@@ -68,7 +68,12 @@
     align-items: center;
     gap: 6px;
     border-bottom: 1px solid var(--border);
+    cursor: move;
+    user-select: none;
   }
+  .top.dragging { cursor: grabbing; }
+  .top button, .top .size-toggle { cursor: pointer; }
+  .top.dragging button, .top.dragging .size-toggle { cursor: grabbing; }
   .top .title {
     font-size: 16px;
     font-weight: 700;
@@ -524,7 +529,7 @@
 
 <script>
 (function () {
-  let state = { rooms: [], users: [], currentRoomId: null, myId: null, myName: null, myCustomStatus: null, size: 'M' };
+  let state = { rooms: [], users: [], currentRoomId: null, myId: null, myName: null, myCustomStatus: null, chatPosition: null, size: 'M' };
   let activeTab = 'rooms';
   let view = 'list';
   let modal = { open: false, mode: 'new', selected: new Set() };
@@ -758,6 +763,9 @@
     if ('myId' in data) state.myId = data.myId;
     if ('myName' in data) state.myName = data.myName;
     if ('myCustomStatus' in data) state.myCustomStatus = data.myCustomStatus;
+    if (data.chatPosition && Number.isFinite(data.chatPosition.x) && Number.isFinite(data.chatPosition.y)) {
+      state.chatPosition = data.chatPosition;
+    }
     if ('size' in data && data.size) {
       state.size = data.size;
       $sizeToggle.querySelectorAll('button').forEach(x =>
@@ -775,6 +783,65 @@
   }
 
   renderList();
+
+  // ── DRAG: move the chat panel by holding the top header ─────────────
+  (function initDrag() {
+    const $top = document.querySelector('.top');
+    if (!$top) return;
+    const POS_KEY = 'mimo-chat-pos';
+
+    let chatX = null, chatY = null;
+    try {
+      const saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
+      if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) {
+        chatX = saved.x; chatY = saved.y;
+      }
+    } catch (e) {}
+
+    // Push saved position to script.js once channel is up.
+    function pushPos() {
+      if (chatX != null) broadcast({ type: 'setChatPosition', x: chatX, y: chatY });
+    }
+    if (chatX != null) { pushPos(); setTimeout(pushPos, 400); setTimeout(pushPos, 1500); }
+
+    let dragging = false;
+    let lastX = 0, lastY = 0;
+    let rafId = 0;
+
+    function flush() {
+      rafId = 0;
+      broadcast({ type: 'setChatPosition', x: chatX, y: chatY });
+    }
+
+    $top.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button, .icon-btn, .size-toggle')) return;
+      // Initialize from current state pushed by script.js, else last known / fallback.
+      if (state.chatPosition) { chatX = state.chatPosition.x; chatY = state.chatPosition.y; }
+      else if (chatX == null) { chatX = 1300; chatY = 100; }
+      dragging = true;
+      lastX = e.clientX; lastY = e.clientY;
+      $top.classList.add('dragging');
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      chatX += e.clientX - lastX;
+      chatY += e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      if (!rafId) rafId = requestAnimationFrame(flush);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      $top.classList.remove('dragging');
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; flush(); }
+      try { localStorage.setItem(POS_KEY, JSON.stringify({ x: chatX, y: chatY })); } catch (e) {}
+    });
+
+    document.addEventListener('selectstart', (e) => { if (dragging) e.preventDefault(); });
+  })();
 
   if (window.WA && typeof WA.onInit === 'function') {
     WA.onInit().then(() => {

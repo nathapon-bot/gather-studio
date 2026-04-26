@@ -914,6 +914,7 @@ function buildChatState() {
     return {
         myId, myName: myPlayerName,
         myCustomStatus,
+        chatPosition: { x: _chatMarginLeft, y: _chatMarginTop },
         rooms:         [...chatRooms.values()].map(roomToWire),
         onlineUsers,
         // Mirror as `users` with explicit `online: true` for the redesigned
@@ -987,8 +988,23 @@ const CHAT_SIZES = {
     M: { width: '22%', height: '65%' },
     L: { width: '32%', height: '80%' },
 };
-const CHAT_POSITION = { vertical: 'middle', horizontal: 'right' };
-const CHAT_MARGIN   = { top: '70px', bottom: '70px', right: '12px' };
+// Anchor at top-left so margin.top/left = absolute pixel offset from viewport
+// origin — this lets us drag the panel by simply updating margins.
+const CHAT_POSITION = { vertical: 'top', horizontal: 'left' };
+// Defaults position the panel near upper-right, similar to the old layout.
+// Once the user drags, chat.html owns the position and pushes setChatPosition.
+let _chatMarginLeft = 1300;
+let _chatMarginTop  = 100;
+function chatMarginNow() {
+    return { top: `${Math.round(_chatMarginTop)}px`, left: `${Math.round(_chatMarginLeft)}px` };
+}
+function applyChatPosition() {
+    if (!chatWebsite) return;
+    try {
+        chatWebsite.margin.top  = `${Math.round(_chatMarginTop)}px`;
+        chatWebsite.margin.left = `${Math.round(_chatMarginLeft)}px`;
+    } catch(e) {}
+}
 
 async function openChatUI(size) {
     if (chatWebsite) return;
@@ -1000,7 +1016,7 @@ async function openChatUI(size) {
             url:       CHAT_HTML_URL,
             position:  CHAT_POSITION,
             size:      CHAT_SIZES[_chatCurrentSize],
-            margin:    CHAT_MARGIN,
+            margin:    chatMarginNow(),
             // allowApi:true is REQUIRED — WA registers the iframe, letting it
             // call WA.event.broadcast/on to talk to us. The chat iframe does NOT
             // use raw postMessage any more, so we no longer trigger "Invalid event"
@@ -1327,6 +1343,13 @@ async function _handleChatEvent(d) {
             case 'resize':        await resizeChatUI(d.size); break;
             case 'createGroup':   await createGroupRoom(d.memberIds); break;
             case 'inviteToRoom':  await inviteToRoom(d.roomId, d.memberIds); break;
+            case 'setChatPosition':
+                if (Number.isFinite(d.x) && Number.isFinite(d.y)) {
+                    _chatMarginLeft = d.x;
+                    _chatMarginTop  = d.y;
+                    applyChatPosition();
+                }
+                break;
         }
     } catch(e) { console.warn('[chat] msg handler error', e); }
 }
