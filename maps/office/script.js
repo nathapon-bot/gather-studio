@@ -385,12 +385,11 @@ function clearBookingMenu() {
 let _goHomeBtnActive = false;
 function showGoHomeButton() {
     if (!myBookedDesk || !myDeskPosition) return hideGoHomeButton();
-    const label = `🏠 กลับโต๊ะ`;
+    if (_goHomeBtnActive) return;                  // idempotent — avoid spamming addButton
     try {
-        if (_goHomeBtnActive) WA.ui.actionBar.removeButton('desk-go-home');
         WA.ui.actionBar.addButton({
             id:        'desk-go-home',
-            label,
+            label:     `🏠 กลับโต๊ะ`,
             bgColor:   '#3a8be0',
             textColor: '#ffffff',
             toolTip:   `เดินกลับไปที่ ${getDeskLabel(myBookedDesk)}`,
@@ -1484,11 +1483,30 @@ WA.onInit().then(async () => {
             nearestDesk = desk;
         }
     }
+    // Toggle "🏠 กลับโต๊ะ" based on distance from booked desk. Hide when the
+    // player is already sitting at / standing right next to their desk so the
+    // button only competes for action-bar space when it's actually useful.
+    const GO_HOME_VISIBLE_DIST = 96;   // ~3 tiles — generous so it shows soon as you wander
+    function refreshGoHomeContextual(x, y) {
+        if (!myBookedDesk || !myDeskPosition) return hideGoHomeButton();
+        const dx = x - myDeskPosition.x;
+        const dy = y - myDeskPosition.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > GO_HOME_VISIBLE_DIST) showGoHomeButton();
+        else hideGoHomeButton();
+    }
+
     try {
-        WA.player.onPlayerMove((ev) => { checkNearestDesk(ev.x, ev.y); });
+        WA.player.onPlayerMove((ev) => {
+            checkNearestDesk(ev.x, ev.y);
+            refreshGoHomeContextual(ev.x, ev.y);
+        });
     } catch(e) { console.warn('[desk] onPlayerMove unavailable, falling back to poll', e); }
     // One-shot initial check (so first load without any movement still highlights)
-    WA.player.getPosition().then(p => checkNearestDesk(p.x, p.y)).catch(()=>{});
+    WA.player.getPosition().then(p => {
+        checkNearestDesk(p.x, p.y);
+        refreshGoHomeContextual(p.x, p.y);
+    }).catch(()=>{});
 
     // ─── SLOW polling (proximity-chat button, others' positions) ───
     // We can't get movement events for OTHER players (we use movement:false in
