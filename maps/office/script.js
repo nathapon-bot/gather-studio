@@ -634,13 +634,9 @@ function trackPlayer(player) {
 // respects it) AND publishes a display label/emoji for other players to see.
 const STATUS_PRESETS = [
     { key: 'online',   emoji: '🟢', label: 'พร้อมทำงาน',       base: 'ONLINE'          },
-    { key: 'wfh',      emoji: '🏠', label: 'Work From Home',    base: 'ONLINE'          },
     { key: 'lunch',    emoji: '🍱', label: 'พักเที่ยง',          base: 'AWAY'            },
-    { key: 'break',    emoji: '☕', label: 'พักเบรค',           base: 'AWAY'            },
-    { key: 'errand',   emoji: '🚗', label: 'ออกนอกออฟฟิศ',     base: 'AWAY'            },
     { key: 'meeting',  emoji: '🎙️', label: 'ประชุมอยู่',         base: 'DO_NOT_DISTURB'  },
     { key: 'focus',    emoji: '💻', label: 'Focus Mode',        base: 'DO_NOT_DISTURB'  },
-    { key: 'oncall',   emoji: '📞', label: 'คุยโทรศัพท์อยู่',      base: 'DO_NOT_DISTURB'  },
 ];
 
 const statusMenuCmds = new Map();   // key → WA menu cmd
@@ -1425,7 +1421,6 @@ WA.onInit().then(async () => {
     // Users can opt-out entirely via the menu if they find it annoying.
 
     // Persistent menu commands
-    WA.ui.registerMenuCommand('🏠 ไปที่โต๊ะของฉัน',    { callback: () => goToMyDesk() });
     WA.ui.registerMenuCommand('📋 ดูสถานะโต๊ะทั้งหมด', { callback: () => showDeskDirectory() });
     updateProximityMenu();   // "📹 เปิด Proximity Chat" toggle
 
