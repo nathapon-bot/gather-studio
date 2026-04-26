@@ -524,7 +524,7 @@
 
 <script>
 (function () {
-  let state = { rooms: [], users: [], currentRoomId: null, myId: null, size: 'M' };
+  let state = { rooms: [], users: [], currentRoomId: null, myId: null, myName: null, myCustomStatus: null, size: 'M' };
   let activeTab = 'rooms';
   let view = 'list';
   let modal = { open: false, mode: 'new', selected: new Set() };
@@ -573,8 +573,18 @@
     else if (activeTab === 'online') {
       items = (state.users || []).filter(u => u.online && u.id !== state.myId).map(u => ({
         id: 'user:' + u.id, userId: u.id, name: u.name,
-        snippet: 'ออนไลน์', online: true, isUserRow: true,
+        snippet: u.customStatus ? `${u.customStatus.emoji} ${u.customStatus.label}` : 'ออนไลน์',
+        online: true, isUserRow: true,
       }));
+      if (state.myId) {
+        const cs = state.myCustomStatus;
+        items.unshift({
+          id: 'me', userId: state.myId,
+          name: (state.myName || 'คุณ') + ' (คุณ)',
+          snippet: cs ? `${cs.emoji} ${cs.label}` : 'ออนไลน์',
+          online: true, isUserRow: true, isSelf: true,
+        });
+      }
     }
     if (!items.length) {
       const empty = activeTab === 'rooms' ? 'ยังไม่มีห้องแชท'
@@ -585,10 +595,16 @@
     $list.innerHTML = '';
     items.forEach(it => {
       const row = document.createElement('div');
-      row.className = 'row';
+      row.className = 'row' + (it.isSelf ? ' self' : '');
       const av = `<div class="avatar">${escapeHtml(it.avatar || initials(it.name))}${it.online ? '<span class="dot"></span>' : ''}</div>`;
       const time = it.time ? `<span class="time">${escapeHtml(fmtTime(it.time))}</span>` : '';
       const badge = it.unread ? `<div class="badge">${it.unread > 99 ? '99+' : it.unread}</div>` : '';
+      const actions = it.isSelf ? '' : `
+        <div class="actions">
+          <button data-act="walk" title="เดินไปหา user คนนี้">ไป</button>
+          <button data-act="call" title="โทรหา user คนนี้">โทร</button>
+          <button data-act="dm"   title="ส่งข้อความหา user คนนี้">DM</button>
+        </div>`;
       row.innerHTML = `
         ${av}
         <div class="meta">
@@ -596,12 +612,9 @@
           <div class="snippet">${escapeHtml(it.snippet || '')}</div>
         </div>
         ${badge}
-        <div class="actions">
-          <button data-act="walk" title="เดินไปหา user คนนี้">ไป</button>
-          <button data-act="call" title="โทรหา user คนนี้">โทร</button>
-          <button data-act="dm"   title="ส่งข้อความหา user คนนี้">DM</button>
-        </div>`;
+        ${actions}`;
       row.addEventListener('click', e => {
+        if (it.isSelf) return;
         const btn = e.target.closest('button[data-act]');
         if (btn) {
           e.stopPropagation();
@@ -743,6 +756,8 @@
     if (Array.isArray(data.rooms)) state.rooms = data.rooms;
     if (Array.isArray(data.users)) state.users = data.users;
     if ('myId' in data) state.myId = data.myId;
+    if ('myName' in data) state.myName = data.myName;
+    if ('myCustomStatus' in data) state.myCustomStatus = data.myCustomStatus;
     if ('size' in data && data.size) {
       state.size = data.size;
       $sizeToggle.querySelectorAll('button').forEach(x =>

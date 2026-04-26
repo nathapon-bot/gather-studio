@@ -895,6 +895,8 @@ function roomToWire(r) {
 
 function buildChatState() {
     let onlineUsers = [];
+    let myCustomStatus = null;
+    try { myCustomStatus = WA.player.state.customStatus || null; } catch(e) {}
     try {
         // WA.players.list() returns an Iterator Helper in modern Chrome —
         // .filter()/.map() chained on it stay as Iterator Helper too, which
@@ -911,6 +913,7 @@ function buildChatState() {
     } catch(e){}
     return {
         myId, myName: myPlayerName,
+        myCustomStatus,
         rooms:         [...chatRooms.values()].map(roomToWire),
         onlineUsers,
         // Mirror as `users` with explicit `online: true` for the redesigned
