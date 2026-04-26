@@ -1,0 +1,17 @@
+node_modules
+play/node_modules
+play/dist
+play/src
+back/node_modules
+back/dist
+libs/*/node_modules
+messages/node_modules
+workadventure
+.git
+benchmark
+desktop
+contrib
+docs
+e2e
+tests
+*.log
