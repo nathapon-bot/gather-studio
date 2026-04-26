@@ -80,6 +80,11 @@
                     <ContextualMenuItems />
                 </div>
 
+                <!-- Visual divider between misc cluster (emoji/grid)
+                     and the hardware cluster (mic/cam/screenshare).
+                     Helps users tell the two groups apart at a glance. -->
+                <div class="hidden @sm/actions:block w-px self-stretch bg-white/15 mx-1 @md/actions:mx-2"></div>
+
                 <div>
                     <!-- ACTION WRAPPER : CAM & MIC -->
                     <div class="group/hardware flex items-center relative">
