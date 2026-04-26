@@ -1389,28 +1389,6 @@ WA.onInit().then(async () => {
         });
     } catch(e) { console.warn('[init] event subscribe failed', e); }
 
-    // ── STAIRS — show "press SPACE" prompt and teleport on action ────
-    // The stairs_up area is only on floor 1; stairs_down is only on floor 2.
-    // Subscribing to both is safe — only the existing one fires.
-    function wireStairs(areaName, destUrl, label) {
-        let actionMsg = null;
-        try {
-            WA.room.area.onEnter(areaName).subscribe(() => {
-                try {
-                    actionMsg = WA.ui.displayActionMessage({
-                        message: label,
-                        callback: () => { try { WA.nav.goToRoom(destUrl); } catch(e){} },
-                    });
-                } catch(e) {}
-            });
-            WA.room.area.onLeave(areaName).subscribe(() => {
-                if (actionMsg) { try { actionMsg.remove(); } catch(e){} actionMsg = null; }
-            });
-        } catch(e) { /* area not present on this floor — ignore */ }
-    }
-    wireStairs('stairs_up',   './map_floor2.json#from-floor1', '🛗 กด SPACE เรียกลิฟต์ขึ้นชั้น 2');
-    wireStairs('stairs_down', './map.json#from-floor2',         '🛗 กด SPACE เรียกลิฟต์ลงชั้น 1');
-
     // Restore persisted booking
     try {
         const saved    = WA.player.state.bookedDesk;
