@@ -111,6 +111,16 @@ const TILE_VACANT       = 2956;   // green  border — vacant (no one booked)
 const TILE_MINE         = 2957;   // blue   border — my booked desk
 const TILE_OTHER        = 2958;   // red    border — someone else's desk
 
+// ── ACTION-BAR COLOR PALETTE ──────────────────────────────
+// Phase 3b: unify all action-bar bgColors to one semantic 4-color set
+// (was a chaotic mix of 5+ random hex values picked at different times).
+const COLOR_PRIMARY  = '#3b82f6';   // default actions — chat / go-home / group chat
+                                    // matches chat.html --accent-2 so the popup
+                                    // and the trigger button read as one system
+const COLOR_SUCCESS  = '#10b981';   // positive actions — book a desk
+const COLOR_DANGER   = '#ef4444';   // destructive / unread — unbook, message badge
+const COLOR_NEUTRAL  = '#475569';   // inactive / closed state — chat already open
+
 // ── DESK OWNER REGISTRY ───────────────────────────────────
 // deskName → { playerName, playerId }
 const deskOwners = new Map();
@@ -349,7 +359,7 @@ function updateBookingMenu(deskName) {
             WA.ui.actionBar.addButton({
                 id: 'desk-book',
                 label: `🔓 ยกเลิกการจอง`,
-                bgColor: '#e74c3c',
+                bgColor: COLOR_DANGER,
                 textColor: '#ffffff',
                 toolTip: `ยกเลิกการจอง: ${getDeskLabel(deskName)}`,
                 callback: () => unbookDesk()
@@ -362,7 +372,7 @@ function updateBookingMenu(deskName) {
             WA.ui.actionBar.addButton({
                 id: 'desk-book',
                 label: `📌 จองโต๊ะนี้`,
-                bgColor: '#2ecc71',
+                bgColor: COLOR_SUCCESS,
                 textColor: '#ffffff',
                 toolTip: `จอง: ${getDeskLabel(deskName)}`,
                 callback: () => bookDesk(deskName)
@@ -390,7 +400,7 @@ function showGoHomeButton() {
         WA.ui.actionBar.addButton({
             id:        'desk-go-home',
             label:     `🏠 กลับโต๊ะ`,
-            bgColor:   '#3a8be0',
+            bgColor:   COLOR_PRIMARY,
             textColor: '#ffffff',
             toolTip:   `เดินกลับไปที่ ${getDeskLabel(myBookedDesk)}`,
             callback:  () => goToMyDesk(),
@@ -998,7 +1008,7 @@ function updateChatActionBarBtn() {
         WA.ui.actionBar.addButton({
             id:        'chat-open',
             label,
-            bgColor:   chatBtnUnread > 0 ? '#e74c3c' : (isOpen ? '#555' : '#4aa3ff'),
+            bgColor:   chatBtnUnread > 0 ? COLOR_DANGER : (isOpen ? COLOR_NEUTRAL : COLOR_PRIMARY),
             textColor: '#ffffff',
             toolTip:   chatBtnUnread > 0 ? `มีข้อความใหม่ ${chatBtnUnread} ข้อความ` : 'เปิด/ปิด Chat',
             callback:  () => toggleChatUI(),
@@ -1284,7 +1294,7 @@ function updateProximityChatBtn(nearbyCount) {
             WA.ui.actionBar.addButton({
                 id:        'chat-nearby',
                 label:     `👥 Chat กลุ่ม (${nearbyCount + 1})`,
-                bgColor:   '#7b5bff',
+                bgColor:   COLOR_PRIMARY,
                 textColor: '#ffffff',
                 toolTip:   `สร้าง group chat กับ ${nearbyCount} คนใกล้ๆ`,
                 callback:  () => chatWithNearby(),
