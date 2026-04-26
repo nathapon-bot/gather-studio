@@ -10752,42 +10752,6 @@
                     "y": 96.3333333333333
                 },
                 {
-                    "height": 64,
-                    "id": 18,
-                    "name": "to-conference",
-                    "properties": [
-                        {
-                            "name": "exitUrl",
-                            "type": "string",
-                            "value": "conference.tmj#from-office"
-                        }
-                    ],
-                    "rotation": 0,
-                    "type": "area",
-                    "visible": true,
-                    "width": 32,
-                    "x": 0,
-                    "y": 512
-                },
-                {
-                    "height": 32,
-                    "id": 19,
-                    "name": "from-conference",
-                    "properties": [
-                        {
-                            "name": "start",
-                            "type": "bool",
-                            "value": true
-                        }
-                    ],
-                    "rotation": 0,
-                    "type": "area",
-                    "visible": true,
-                    "width": 32,
-                    "x": 64,
-                    "y": 544
-                },
-                {
                     "class": "area",
                     "height": 128,
                     "id": 100,
